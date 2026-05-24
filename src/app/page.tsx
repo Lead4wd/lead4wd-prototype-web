@@ -19,20 +19,12 @@ export default function Home() {
   const [activeModule, setActiveModule] = useState<Module | null>(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
-  // Initialize from sessionStorage on mount and when user changes
+  // Clear session on reload to force logout and redirect to login page
   useEffect(() => {
-    const loggedInUser = sessionStorage.getItem("lead4wd_logged_in_user");
-    if (loggedInUser) {
-      setCurrentUser(loggedInUser);
-      setAppState("DASHBOARD");
-      
-      const savedState = sessionStorage.getItem(`lead4wd_progress_${loggedInUser}`);
-      if (savedState) {
-        setCompletedQuestions(JSON.parse(savedState));
-      } else {
-        setCompletedQuestions({});
-      }
-    }
+    sessionStorage.clear();
+    setCurrentUser(null);
+    setCompletedQuestions({});
+    setAppState("AUTH");
   }, []);
 
   // Sync progress to sessionStorage
