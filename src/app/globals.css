@@ -1,0 +1,172 @@
+:root {
+  --bg-primary: #121212;
+  --bg-secondary: #1E1E1E;
+  --text-primary: #FFFFFF;
+  --text-secondary: #AAAAAA;
+  --text-tertiary: #888888;
+  --accent-color: #3B82F6;
+  --accent-hover: #2563EB;
+  --error-color: #EF4444;
+  --success-color: #10B981;
+  --border-color: #333333;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Base UI Elements */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px;
+  width: 100%;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+p {
+  color: var(--text-secondary);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Forms */
+.input-field {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--text-primary);
+  font-size: 16px;
+  width: 100%;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.input-field::placeholder {
+  color: var(--text-tertiary);
+}
+
+.input-field:focus {
+  border-color: var(--accent-color);
+}
+
+/* Buttons */
+.primary-button {
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.primary-button:hover {
+  background-color: var(--accent-hover);
+}
+
+.primary-button:disabled {
+  background-color: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.secondary-button {
+  background-color: transparent;
+  color: var(--accent-color);
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px;
+}
+
+/* Option Cards (for questions and onboarding) */
+.option-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 16px 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.option-card:hover {
+  border-color: var(--text-tertiary);
+}
+
+.option-card.selected {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-color: var(--accent-color);
+}
+
+.option-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.option-card.selected .option-indicator {
+  border-color: var(--accent-color);
+  background-color: var(--accent-color);
+}
+
+/* List Item (Dashboard) */
+.list-item {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.list-item:hover {
+  border-color: var(--text-tertiary);
+}
+
+.list-item.completed {
+  border-color: var(--success-color);
+}
