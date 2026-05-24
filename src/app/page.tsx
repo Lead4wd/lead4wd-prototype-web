@@ -113,10 +113,18 @@ function Onboarding({ onComplete }: { onComplete: () => void }) {
   
   return (
     <div className="container flex-center" style={{ flex: 1 }}>
-      <div style={{ width: '100%' }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '480px', 
+        backgroundColor: 'var(--bg-secondary)', 
+        padding: '48px', 
+        borderRadius: '12px',
+        border: '1px solid var(--border-color)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+      }}>
         <div style={{ marginBottom: '32px' }}>
-          <p style={{ color: 'var(--accent-color)', fontWeight: 600, marginBottom: '8px' }}>Welcome to Lead4wd</p>
-          <h1>{question.text}</h1>
+          <p style={{ color: 'var(--accent-color)', fontWeight: 600, marginBottom: '8px', fontSize: '14px' }}>Welcome to Lead4wd</p>
+          <h1 style={{ fontSize: '28px' }}>{question.text}</h1>
         </div>
         <div>
           {question.options.map((opt, i) => (
@@ -130,24 +138,32 @@ function Onboarding({ onComplete }: { onComplete: () => void }) {
                   onComplete();
                 }
               }}
+              style={{ padding: '16px' }}
             >
-              <div className="option-indicator"></div>
-              <span style={{ fontWeight: 500 }}>{opt}</span>
+              <div className="option-indicator" style={{ width: '20px', height: '20px' }}></div>
+              <span style={{ fontWeight: 500, fontSize: '15px' }}>{opt}</span>
             </div>
           ))}
         </div>
-        <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-          {ONBOARDING_QUESTIONS.map((_, i) => (
-            <div 
-              key={i} 
-              style={{
-                width: '8px', 
-                height: '8px', 
-                borderRadius: '50%', 
-                background: i === onboardingIndex ? 'var(--accent-color)' : 'var(--border-color)',
-              }}
-            />
-          ))}
+        
+        <div style={{ marginTop: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <button className="secondary-button" style={{ color: 'var(--text-tertiary)', padding: 0 }} onClick={onComplete}>
+            Skip
+          </button>
+          
+          <div style={{ display: 'flex', gap: '8px' }}>
+            {ONBOARDING_QUESTIONS.map((_, i) => (
+              <div 
+                key={i} 
+                style={{
+                  width: '8px', 
+                  height: '8px', 
+                  borderRadius: '50%', 
+                  background: i === onboardingIndex ? 'var(--accent-color)' : 'var(--border-color)',
+                }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
@@ -157,10 +173,9 @@ function Onboarding({ onComplete }: { onComplete: () => void }) {
 function Auth({ onLogin }: { onLogin: (username: string) => void }) {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  
   const [dummyForgotMsg, setDummyForgotMsg] = useState(false);
-  const [dummyCreateMsg, setDummyCreateMsg] = useState(false);
+  const [dummyGoogleMsg, setDummyGoogleMsg] = useState(false);
+  const [dummySignUpMsg, setDummySignUpMsg] = useState(false);
 
   const handleLogin = () => {
     if (!identifier.trim()) {
@@ -172,61 +187,81 @@ function Auth({ onLogin }: { onLogin: (username: string) => void }) {
 
   return (
     <div className="container flex-center" style={{ flex: 1 }}>
-      <div style={{ width: '100%', textAlign: 'center' }}>
-        <h1 style={{ marginBottom: '32px' }}>Welcome</h1>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '480px', 
+        backgroundColor: 'var(--bg-secondary)', 
+        padding: '48px', 
+        borderRadius: '12px',
+        border: '1px solid var(--border-color)',
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)'
+      }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '8px' }}>Please enter your details</p>
+        <h1 style={{ marginBottom: '32px', fontSize: '32px' }}>Welcome back</h1>
         
         <input 
           type="text" 
-          placeholder="Username or Email" 
+          placeholder="Email address" 
           className="input-field" 
           value={identifier}
           onChange={(e) => setIdentifier(e.target.value)}
-          style={{ textAlign: 'center' }}
+          style={{ marginBottom: '16px' }}
         />
         
-        <div style={{ position: 'relative' }}>
-          <input 
-            type={showPassword ? "text" : "password"} 
-            placeholder="Password" 
-            className="input-field" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ textAlign: 'center' }}
-          />
-          <button 
-            onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: 'absolute',
-              right: '16px',
-              top: '16px',
-              background: 'none',
-              border: 'none',
-              color: 'var(--text-tertiary)',
-              cursor: 'pointer'
-            }}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </button>
+        <input 
+          type="password" 
+          placeholder="Password" 
+          className="input-field" 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ marginBottom: '16px' }}
+        />
+        
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <input type="checkbox" id="remember" style={{ cursor: 'pointer' }} />
+             <label htmlFor="remember" style={{ color: 'var(--text-secondary)', fontSize: '14px', cursor: 'pointer' }}>Remember for 30 days</label>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+            <button className="secondary-button" style={{ padding: 0 }} onClick={() => setDummyForgotMsg(true)}>
+              Forgot password?
+            </button>
+            {dummyForgotMsg && <span style={{ color: 'var(--error-color)', fontSize: '10px', marginTop: '4px' }}>dummy button</span>}
+          </div>
         </div>
         
-        <button className="primary-button" onClick={handleLogin} style={{ marginTop: '8px' }}>
+        <button className="primary-button" onClick={handleLogin} style={{ marginBottom: '16px' }}>
           Login
         </button>
         
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '24px', gap: '16px' }}>
-          <div>
-            <button className="secondary-button" onClick={() => setDummyForgotMsg(true)}>
-              Forgot Password?
-            </button>
-            {dummyForgotMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px' }}>this is a dummy button</p>}
-          </div>
-          
-          <div>
-            <button className="secondary-button" onClick={() => setDummyCreateMsg(true)}>
-              Create Account
-            </button>
-            {dummyCreateMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px' }}>this is a dummy button</p>}
-          </div>
+        <button 
+          className="secondary-button" 
+          onClick={() => setDummyGoogleMsg(true)}
+          style={{ 
+            width: '100%', 
+            padding: '16px', 
+            border: '1px solid var(--border-color)', 
+            borderRadius: '8px', 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            gap: '8px',
+            color: 'var(--text-primary)',
+            marginBottom: '4px'
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"></path>
+            <path d="M12 16v-8"></path>
+            <path d="M8 12h8"></path>
+          </svg>
+          Sign in with Google
+        </button>
+        {dummyGoogleMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px', textAlign: 'center', marginBottom: '8px' }}>dummy button</p>}
+        
+        <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-secondary)' }}>
+          Don't have an account? <button className="secondary-button" style={{ padding: 0, fontSize: '14px' }} onClick={() => setDummySignUpMsg(true)}>Sign up</button>
+          {dummySignUpMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px', marginTop: '4px' }}>dummy button</p>}
         </div>
       </div>
     </div>
