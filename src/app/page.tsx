@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MOCK_MODULES, ONBOARDING_QUESTIONS, Module, Question } from "@/data/mock";
+import { MOCK_MODULES, ONBOARDING_QUESTIONS, Module } from "@/data/mock";
 
 type AppState = "ONBOARDING" | "AUTH" | "DASHBOARD" | "QUESTION_PLAYER" | "PROFILE";
 type ProgressState = Record<string, "correct" | "wrong">;
@@ -22,9 +22,11 @@ export default function Home() {
   // Clear session on reload to force logout and redirect to login page
   useEffect(() => {
     sessionStorage.clear();
-    setCurrentUser(null);
-    setCompletedQuestions({});
-    setAppState("AUTH");
+    setTimeout(() => {
+      setCurrentUser(null);
+      setCompletedQuestions({});
+      setAppState("AUTH");
+    }, 0);
   }, []);
 
   // Sync progress to sessionStorage
@@ -252,7 +254,7 @@ function Auth({ onLogin }: { onLogin: (username: string) => void }) {
         {dummyGoogleMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px', textAlign: 'center', marginBottom: '8px' }}>dummy button</p>}
         
         <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', color: 'var(--text-secondary)' }}>
-          Don't have an account? <button className="secondary-button" style={{ padding: 0, fontSize: '14px' }} onClick={() => setDummySignUpMsg(true)}>Sign up</button>
+          Don&apos;t have an account? <button className="secondary-button" style={{ padding: 0, fontSize: '14px' }} onClick={() => setDummySignUpMsg(true)}>Sign up</button>
           {dummySignUpMsg && <p style={{ color: 'var(--error-color)', fontSize: '12px', marginTop: '4px' }}>dummy button</p>}
         </div>
       </div>
@@ -400,7 +402,9 @@ function QuestionPlayer({ activeModule, currentQuestionIndex, setCurrentQuestion
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
   useEffect(() => {
-    setSelectedOption(null);
+    setTimeout(() => {
+      setSelectedOption(null);
+    }, 0);
   }, [currentQuestionIndex, activeModule]);
 
   const handleSubmit = () => {
