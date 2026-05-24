@@ -6,66 +6,114 @@ export type Question = {
   correctOptionIndex?: number;
 };
 
-export const MOCK_QUESTIONS: Question[] = [
+export type Module = {
+  id: string;
+  title: string;
+  questions: Question[];
+};
+
+export const MOCK_MODULES: Module[] = [
   {
-    id: "q1",
-    number: 1,
-    text: "When a team member shares a concern, what should your first step be?",
-    options: [
-      "Suggest a solution immediately to save time",
-      "Ask clarifying questions to understand their view",
-      "Remind them of the project deadline",
-      "Assign the problem to someone else"
-    ],
-    correctOptionIndex: 1
+    id: "m1",
+    title: "Module 1: The First 90 Days",
+    questions: [
+      {
+        id: "m1_q1",
+        number: 1,
+        text: "When a team member shares a concern, what should your first step be?",
+        options: [
+          "Suggest a solution immediately to save time",
+          "Ask clarifying questions to understand their view",
+          "Remind them of the project deadline",
+          "Assign the problem to someone else"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "m1_q2",
+        number: 2,
+        text: "In 1:1 meetings, what is the best practice for giving your full attention?",
+        options: [
+          "Keep your phone on the desk just in case",
+          "Multitask on minor emails while they speak",
+          "Turn off notifications and let them do most of the talking",
+          "Only schedule them when you have no other work"
+        ],
+        correctOptionIndex: 2
+      },
+      {
+        id: "m1_q3",
+        number: 3,
+        text: "How should you handle delegating a meaningful task?",
+        options: [
+          "Step back in to fix it if they do it differently than you would",
+          "Only delegate tasks you don't want to do",
+          "Be clear about the outcome and decision rights, then let them own it",
+          "Give them the task without any timeline to reduce pressure"
+        ],
+        correctOptionIndex: 2
+      }
+    ]
   },
   {
-    id: "q2",
-    number: 2,
-    text: "In 1:1 meetings, what is the best practice for giving your full attention?",
-    options: [
-      "Keep your phone on the desk just in case",
-      "Multitask on minor emails while they speak",
-      "Turn off notifications and let them do most of the talking",
-      "Only schedule them when you have no other work"
-    ],
-    correctOptionIndex: 2
+    id: "m2",
+    title: "Module 2: Manager Mindset & Emotional Intelligence",
+    questions: [
+      {
+        id: "m2_q1",
+        number: 1,
+        text: "When an unexpected issue arises, what is the emotionally intelligent response?",
+        options: [
+          "Firing off a sharp message in the team chat as soon as you see a mistake",
+          "Taking a breath, asking 'What happened here?' before commenting",
+          "Finding someone to blame immediately so the team learns",
+          "Ignoring the issue and hoping the team resolves it"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "m2_q2",
+        number: 2,
+        text: "Self-awareness as a manager primarily means:",
+        options: [
+          "Knowing all the answers to technical questions",
+          "Making sure everyone knows you are the boss",
+          "Noticing what you feel and how you come across to others—especially when stressed",
+          "Being aware of the exact time your team starts and stops working"
+        ],
+        correctOptionIndex: 2
+      }
+    ]
   },
   {
-    id: "q3",
-    number: 3,
-    text: "How should you handle delegating a meaningful task?",
-    options: [
-      "Step back in to fix it if they do it differently than you would",
-      "Only delegate tasks you don't want to do",
-      "Be clear about the outcome and decision rights, then let them own it",
-      "Give them the task without any timeline to reduce pressure"
-    ],
-    correctOptionIndex: 2
-  },
-  {
-    id: "q4",
-    number: 4,
-    text: "When delivering feedback, which approach is most effective?",
-    options: [
-      "Wait for the annual performance review",
-      "Give specific feedback shortly after the real work situation occurs",
-      "Only give positive feedback to maintain morale",
-      "Deliver it in front of the whole team so everyone learns"
-    ],
-    correctOptionIndex: 1
-  },
-  {
-    id: "q5",
-    number: 5,
-    text: "If you notice repeated tension between two team members, you should:",
-    options: [
-      "Hope it resolves itself over time",
-      "Reassign one of them to a different project",
-      "Bring it up directly and facilitate an honest conversation",
-      "Ignore it unless it affects the project delivery"
-    ],
-    correctOptionIndex: 2
+    id: "m3",
+    title: "Module 3: Feedback & Coaching",
+    questions: [
+      {
+        id: "m3_q1",
+        number: 1,
+        text: "When delivering feedback, which approach is most effective?",
+        options: [
+          "Wait for the annual performance review",
+          "Give specific feedback shortly after the real work situation occurs",
+          "Only give positive feedback to maintain morale",
+          "Deliver it in front of the whole team so everyone learns"
+        ],
+        correctOptionIndex: 1
+      },
+      {
+        id: "m3_q2",
+        number: 2,
+        text: "If you notice repeated tension between two team members, you should:",
+        options: [
+          "Hope it resolves itself over time",
+          "Reassign one of them to a different project",
+          "Bring it up directly and facilitate an honest conversation",
+          "Ignore it unless it affects the project delivery"
+        ],
+        correctOptionIndex: 2
+      }
+    ]
   }
 ];
 
