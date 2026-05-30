@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { MOCK_MODULES, ONBOARDING_QUESTIONS, Module, LanguageCode, UI_STRINGS } from "@/data/mock";
 
 type AppState = "LANGUAGE_SELECT" | "ONBOARDING" | "AUTH" | "DASHBOARD" | "QUESTION_PLAYER" | "PROFILE";
-type ProgressState = Record<string, "correct" | "wrong">;
+type ProgressState = Record<string, { status: "correct" | "wrong", selectedIndex: number }>;
 
 export default function Home() {
   const [appState, setAppState] = useState<AppState>("LANGUAGE_SELECT");
@@ -52,7 +52,20 @@ export default function Home() {
     // Load progress for this user
     const savedState = sessionStorage.getItem(`lead4wd_progress_${username}`);
     if (savedState) {
-      setCompletedQuestions(JSON.parse(savedState));
+      try {
+        const parsed = JSON.parse(savedState);
+        const migratedState: ProgressState = {};
+        for (const [key, value] of Object.entries(parsed)) {
+          if (typeof value === "string") {
+            migratedState[key] = { status: value as "correct" | "wrong", selectedIndex: -1 };
+          } else {
+            migratedState[key] = value as any;
+          }
+        }
+        setCompletedQuestions(migratedState);
+      } catch (e) {
+        setCompletedQuestions({});
+      }
     } else {
       setCompletedQuestions({});
     }
@@ -292,7 +305,7 @@ function Dashboard({ username, ui, modules, completedQuestions, onOpenProfile, o
   };
 
   const totalQuestions = modules.reduce((acc, mod) => acc + mod.questions.length, 0);
-  const correctCount = Object.values(completedQuestions).filter(status => status === "correct").length;
+  const correctCount = Object.values(completedQuestions).filter(val => val.status === "correct").length;
   const percentage = Math.round((correctCount / totalQuestions) * 100) || 0;
 
   return (
@@ -348,7 +361,7 @@ function Dashboard({ username, ui, modules, completedQuestions, onOpenProfile, o
               {isExpanded && (
                 <div className="module-content">
                   {module.questions.map((q, qIdx) => {
-                    const status = completedQuestions[q.id];
+                    const status = completedQuestions[q.id]?.status;
                     return (
                       <div 
                         key={q.id}
@@ -419,7 +432,8 @@ function QuestionPlayer({
 }) {
   const activeModule = modules[activeModuleIndex];
   const q = activeModule.questions[currentQuestionIndex];
-  const status = completedQuestions[q.id];
+  const progress = completedQuestions[q.id];
+  const status = progress?.status;
   const isCorrect = status === "correct";
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
 
@@ -429,17 +443,22 @@ function QuestionPlayer({
   const isLastQuestionOverall = isLastModule && isLastQuestionOfModule;
 
   useEffect(() => {
-    setTimeout(() => {
+    const savedProgress = completedQuestions[q.id];
+    if (savedProgress && savedProgress.selectedIndex !== undefined && savedProgress.selectedIndex !== -1) {
+      setSelectedOption(savedProgress.selectedIndex);
+    } else if (savedProgress && savedProgress.status === "correct" && q.correctOptionIndex !== undefined) {
+      setSelectedOption(q.correctOptionIndex);
+    } else {
       setSelectedOption(null);
-    }, 0);
-  }, [currentQuestionIndex, activeModuleIndex]);
+    }
+  }, [q.id]); // Only run when navigating to a new question
 
   const handleSubmit = () => {
     if (selectedOption !== null) {
       if (selectedOption === q.correctOptionIndex) {
-        setCompletedQuestions(prev => ({ ...prev, [q.id]: "correct" }));
+        setCompletedQuestions(prev => ({ ...prev, [q.id]: { status: "correct", selectedIndex: selectedOption } }));
       } else {
-        setCompletedQuestions(prev => ({ ...prev, [q.id]: "wrong" }));
+        setCompletedQuestions(prev => ({ ...prev, [q.id]: { status: "wrong", selectedIndex: selectedOption } }));
       }
     }
   };
