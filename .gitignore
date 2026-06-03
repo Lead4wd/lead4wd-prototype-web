@@ -36,6 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local agent / dev tooling (machine-specific)
+/.claude/
+/google-docs-mcp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
