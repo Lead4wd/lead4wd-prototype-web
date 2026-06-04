@@ -172,6 +172,8 @@ export type Content = {
     saveForLater: string;
     markComplete: string;
     allCaughtUp: string; // shown when every unlocked lesson is done
+    lessonLabel: string; // "Lesson {n}"
+    footTemplate: string; // "Lesson {n} of {total} · {week}"
   };
   assessment: {
     exit: string;
@@ -211,6 +213,8 @@ export type Content = {
     wordsTitle: string;
     anon: string;
     quotes: PulseQuote[];
+    dummyNote: string;
+    dummyClose: string;
   };
   language: { label: string; en: string; hi: string; te: string };
 };
@@ -326,11 +330,11 @@ const en: Content = {
     todayLabel: "Today",
     teamTitle: "How your team feels",
     openTeam: "Open Team Pulse →",
-    pulseEyebrow: "Latest pulse · 3 anonymous replies",
+    pulseEyebrow: "Latest pulse · 0 anonymous replies",
     pulseRows: [
-      { name: "Listens well", pct: 84, score: "4.2", tone: "good" },
-      { name: "Clear goals", pct: 72, score: "3.6", tone: "normal" },
-      { name: "Fair feedback", pct: 64, score: "3.2", tone: "acc" },
+      { name: "Listens well", pct: 0, score: "0.0", tone: "good" },
+      { name: "Clear goals", pct: 0, score: "0.0", tone: "normal" },
+      { name: "Fair feedback", pct: 0, score: "0.0", tone: "acc" },
     ],
     coachEyebrow: "Coach's note",
     coachNote:
@@ -444,6 +448,8 @@ const en: Content = {
     saveForLater: "Save for later",
     markComplete: "Mark complete · keep streak 🔥",
     allCaughtUp: "You're all caught up — great work. New lessons unlock as your journey continues.",
+    lessonLabel: "Lesson {n}",
+    footTemplate: "Lesson {n} of {total} · {week}",
   },
   assessment: {
     exit: "Exit",
@@ -520,6 +526,9 @@ const en: Content = {
       { text: '"Feedback comes faster and it’s specific, which helps. Sometimes I’m still unsure what the top priority is for the week."', by: "— Pulse question: Clarity" },
       { text: '"Good at backing us up when things go wrong."', by: "— Pulse question: Support" },
     ],
+    dummyNote:
+      "This is a dummy. Sending a real anonymous pulse to your team needs a backend, which this prototype doesn't have yet.",
+    dummyClose: "Got it",
   },
   language: { label: "Language", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
@@ -630,11 +639,11 @@ const hi: Content = {
     todayLabel: "आज",
     teamTitle: "आपकी टीम कैसा महसूस करती है",
     openTeam: "टीम पल्स खोलें →",
-    pulseEyebrow: "नवीनतम पल्स · 3 गुमनाम उत्तर",
+    pulseEyebrow: "नवीनतम पल्स · 0 गुमनाम उत्तर",
     pulseRows: [
-      { name: "अच्छे से सुनते हैं", pct: 84, score: "4.2", tone: "good" },
-      { name: "स्पष्ट लक्ष्य", pct: 72, score: "3.6", tone: "normal" },
-      { name: "निष्पक्ष फीडबैक", pct: 64, score: "3.2", tone: "acc" },
+      { name: "अच्छे से सुनते हैं", pct: 0, score: "0.0", tone: "good" },
+      { name: "स्पष्ट लक्ष्य", pct: 0, score: "0.0", tone: "normal" },
+      { name: "निष्पक्ष फीडबैक", pct: 0, score: "0.0", tone: "acc" },
     ],
     coachEyebrow: "कोच की टिप्पणी",
     coachNote:
@@ -746,6 +755,8 @@ const hi: Content = {
     saveForLater: "बाद के लिए सहेजें",
     markComplete: "पूर्ण करें · लय बनाए रखें 🔥",
     allCaughtUp: "आप पूरी तरह अद्यतित हैं — बढ़िया काम। यात्रा आगे बढ़ने पर नए पाठ खुलेंगे।",
+    lessonLabel: "पाठ {n}",
+    footTemplate: "{total} में से पाठ {n} · {week}",
   },
   assessment: {
     exit: "बाहर",
@@ -822,6 +833,9 @@ const hi: Content = {
       { text: '"फीडबैक तेज़ी से और विशिष्ट रूप से आता है, जो मदद करता है। कभी-कभी मुझे अब भी पक्का नहीं होता कि हफ़्ते की सबसे बड़ी प्राथमिकता क्या है।"', by: "— पल्स सवाल: स्पष्टता" },
       { text: '"जब चीज़ें ग़लत होती हैं तो हमारा साथ देने में अच्छी हैं।"', by: "— पल्स सवाल: समर्थन" },
     ],
+    dummyNote:
+      "यह एक डमी है। आपकी टीम को असली गुमनाम पल्स भेजने के लिए बैकएंड चाहिए, जो इस प्रोटोटाइप में अभी नहीं है।",
+    dummyClose: "ठीक है",
   },
   language: { label: "भाषा", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
@@ -932,11 +946,11 @@ const te: Content = {
     todayLabel: "నేడు",
     teamTitle: "మీ టీమ్ ఎలా భావిస్తోంది",
     openTeam: "టీమ్ పల్స్ తెరవండి →",
-    pulseEyebrow: "తాజా పల్స్ · 3 అనామక సమాధానాలు",
+    pulseEyebrow: "తాజా పల్స్ · 0 అనామక సమాధానాలు",
     pulseRows: [
-      { name: "బాగా వింటారు", pct: 84, score: "4.2", tone: "good" },
-      { name: "స్పష్ట లక్ష్యాలు", pct: 72, score: "3.6", tone: "normal" },
-      { name: "నిష్పక్ష ఫీడ్‌బ్యాక్", pct: 64, score: "3.2", tone: "acc" },
+      { name: "బాగా వింటారు", pct: 0, score: "0.0", tone: "good" },
+      { name: "స్పష్ట లక్ష్యాలు", pct: 0, score: "0.0", tone: "normal" },
+      { name: "నిష్పక్ష ఫీడ్‌బ్యాక్", pct: 0, score: "0.0", tone: "acc" },
     ],
     coachEyebrow: "కోచ్ గమనిక",
     coachNote:
@@ -1048,6 +1062,8 @@ const te: Content = {
     saveForLater: "తర్వాత కోసం సేవ్ చేయి",
     markComplete: "పూర్తి చేయి · స్ట్రీక్ నిలుపు 🔥",
     allCaughtUp: "మీరు పూర్తిగా తాజాగా ఉన్నారు — చక్కని పని. ప్రయాణం కొనసాగుతున్న కొద్దీ కొత్త పాఠాలు తెరుచుకుంటాయి.",
+    lessonLabel: "పాఠం {n}",
+    footTemplate: "{total}లో పాఠం {n} · {week}",
   },
   assessment: {
     exit: "నిష్క్రమించు",
@@ -1124,6 +1140,9 @@ const te: Content = {
       { text: '"ఫీడ్‌బ్యాక్ వేగంగా, నిర్దిష్టంగా వస్తుంది, అది సహాయపడుతుంది. కొన్నిసార్లు వారానికి అతిపెద్ద ప్రాధాన్యత ఏమిటో నాకు ఇంకా స్పష్టంగా తెలియదు."', by: "— పల్స్ ప్రశ్న: స్పష్టత" },
       { text: '"విషయాలు తప్పుగా జరిగినప్పుడు మాకు అండగా నిలవడంలో బాగుంటారు."', by: "— పల్స్ ప్రశ్న: మద్దతు" },
     ],
+    dummyNote:
+      "ఇది ఒక డమ్మీ. మీ టీమ్‌కు నిజమైన అనామక పల్స్ పంపడానికి బ్యాకెండ్ అవసరం, ఇది ఈ ప్రోటోటైప్‌లో ఇంకా లేదు.",
+    dummyClose: "సరే",
   },
   language: { label: "భాష", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };

@@ -1,7 +1,9 @@
+import { useState } from "react";
 import type { Content } from "@/data/content";
 
 export default function TeamPulse({ c }: { c: Content }) {
   const t = c.team;
+  const [showDummy, setShowDummy] = useState(false);
   return (
     <section className="view on">
       <div className="pulse-head">
@@ -9,8 +11,22 @@ export default function TeamPulse({ c }: { c: Content }) {
           <span className="eyebrow">{t.eyebrow}</span>
           <h1 style={{ marginTop: 10, fontSize: "clamp(28px,3.4vw,40px)" }}>{t.title}</h1>
         </div>
-        <button className="btn btn-pri">{t.sendCta}</button>
+        <button className="btn btn-pri" onClick={() => setShowDummy(true)}>
+          {t.sendCta}
+        </button>
       </div>
+
+      {showDummy && (
+        <div className="modal-scrim" onClick={() => setShowDummy(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <span className="eyebrow">{t.title}</span>
+            <p>{t.dummyNote}</p>
+            <button className="btn btn-pri" onClick={() => setShowDummy(false)}>
+              {t.dummyClose}
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="pulse-grid">
         <div className="card">

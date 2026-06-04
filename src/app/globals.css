@@ -248,6 +248,15 @@ button{font-family:inherit;cursor:pointer}
 .dim{margin-top:18px;text-align:center;font-size:14px;color:var(--ink-soft)}
 .dummy-msg{margin-top:10px;text-align:center;font-size:12px;color:var(--warn)}
 
+/* ---- DUMMY-FEATURE MODAL ---- */
+.modal-scrim{position:fixed;inset:0;background:rgba(8,18,12,.5);display:grid;place-items:center;z-index:100;padding:24px;
+  animation:fade .15s ease}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;max-width:400px;width:100%;
+  box-shadow:0 24px 60px -20px rgba(0,0,0,.4)}
+.modal-card p{font-size:15px;color:var(--ink);line-height:1.55;font-weight:500;margin:10px 0 20px}
+.modal-card .btn{width:100%;justify-content:center}
+
 /* ---- SEARCH (topbar) ---- */
 .searchwrap{position:relative}
 .search input{flex:1;min-width:0;border:none;background:transparent;outline:none;color:var(--ink);font-family:inherit;font-size:13.5px}
