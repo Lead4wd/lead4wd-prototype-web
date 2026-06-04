@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
-import type { Content, LanguageCode, SkillId } from "@/data/content";
-import { computeStreak, type Progress, type View } from "@/lib/progress";
+import { SKILL_ORDER, type Content, type LanguageCode, type SkillId } from "@/data/content";
+import { type Progress, type View } from "@/lib/progress";
 import { fmt } from "@/lib/format";
 import { Chevron, Check, Search, Menu } from "@/components/icons";
 import Dashboard from "@/components/views/Dashboard";
@@ -90,6 +90,27 @@ const NAV: NavSection[] = [
   },
 ];
 
+// Build the searchable index (pages + skills + every journey lesson) for a language.
+function searchIndex(c: Content): { label: string; view: View; tag: string }[] {
+  const pages: { label: string; view: View; tag: string }[] = [
+    { label: c.nav.home, view: "dashboard", tag: c.nav.coaching },
+    { label: c.nav.journey, view: "journey", tag: c.nav.coaching },
+    { label: c.nav.lesson, view: "lesson", tag: c.nav.coaching },
+    { label: c.nav.results, view: "results", tag: c.nav.insight },
+    { label: c.nav.team, view: "team", tag: c.nav.insight },
+    { label: c.nav.assessment, view: "assessment", tag: c.nav.insight },
+  ];
+  const skills = SKILL_ORDER.map((id) => ({
+    label: c.skillNames[id],
+    view: "results" as View,
+    tag: c.nav.results,
+  }));
+  const lessons = c.journey.phases
+    .flatMap((p) => p.weeks)
+    .flatMap((w) => w.lessons.map((l) => ({ label: l.title, view: "journey" as View, tag: w.label })));
+  return [...pages, ...skills, ...lessons];
+}
+
 export default function AppShell({
   c,
   language,
@@ -110,22 +131,34 @@ export default function AppShell({
   const [view, setView] = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  // Close the language menu on any outside click.
+  // Close popovers on any outside click.
   useEffect(() => {
-    if (!langOpen) return;
-    const close = () => setLangOpen(false);
+    if (!langOpen && !searchOpen) return;
+    const close = () => {
+      setLangOpen(false);
+      setSearchOpen(false);
+    };
     window.addEventListener("click", close);
     return () => window.removeEventListener("click", close);
-  }, [langOpen]);
+  }, [langOpen, searchOpen]);
 
   const go = (v: View) => {
     setView(v);
     setSidebarOpen(false);
     setLangOpen(false);
+    setSearchOpen(false);
+    setSearch("");
   };
 
-  const streak = computeStreak(progress.activeDates);
+  const query = search.trim().toLowerCase();
+  const results = query
+    ? searchIndex(c)
+        .filter((r) => r.label.toLowerCase().includes(query))
+        .slice(0, 8)
+    : [];
 
   return (
     <>
@@ -176,29 +209,54 @@ export default function AppShell({
             </div>
 
             <div className="tools">
-              <div className="search">
-                <Search />
-                {c.topbar.search}
+              {/* search */}
+              <div className="searchwrap" onClick={(e) => e.stopPropagation()}>
+                <div className="search">
+                  <Search />
+                  <input
+                    value={search}
+                    placeholder={c.topbar.search}
+                    onChange={(e) => {
+                      setSearch(e.target.value);
+                      setSearchOpen(true);
+                    }}
+                    onFocus={() => setSearchOpen(true)}
+                  />
+                </div>
+                {searchOpen && query && (
+                  <div className="searchmenu">
+                    {results.length > 0 ? (
+                      results.map((r, i) => (
+                        <button key={i} onClick={() => go(r.view)}>
+                          <span>{r.label}</span>
+                          <span className="stype">{r.tag}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="empty">—</div>
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="streakpill">🔥 {fmt(c.topbar.streakLabel, { n: streak })}</div>
-              <div className="langwrap">
-                <button
-                  className="langsel"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setLangOpen((o) => !o);
-                  }}
-                >
+
+              <div className="streakpill">🔥 {fmt(c.topbar.streakLabel, { n: progress.streak })}</div>
+
+              {/* language */}
+              <div className="langwrap" onClick={(e) => e.stopPropagation()}>
+                <button className="langsel" onClick={() => setLangOpen((o) => !o)}>
                   {language.toUpperCase()}
                   <Chevron />
                 </button>
                 {langOpen && (
-                  <div className="langmenu" onClick={(e) => e.stopPropagation()}>
+                  <div className="langmenu">
                     {languages.map((l) => (
                       <button
                         key={l.code}
                         className={language === l.code ? "on" : ""}
-                        onClick={() => onChangeLanguage(l.code)}
+                        onClick={() => {
+                          onChangeLanguage(l.code);
+                          setLangOpen(false);
+                        }}
                       >
                         {l.label}
                         {language === l.code && <Check />}

@@ -3,6 +3,8 @@ import { levelFromScore, pctFromScore } from "@/data/content";
 import {
   planPct,
   streakCells,
+  currentLessonId,
+  currentWeekNumber,
   type Progress,
   type View,
 } from "@/lib/progress";
@@ -26,13 +28,14 @@ export default function Dashboard({
   const pct = planPct(progress.completedLessons);
   const lessons = progress.completedLessons.length;
   const actions = progress.actionsTried.length;
-  const cells = streakCells(progress.activeDates, d.weekdaysShort, d.todayLabel);
+  const week = currentWeekNumber(currentLessonId(progress.completedLessons));
+  const cells = streakCells(progress.streak, d.weekdaysShort, d.todayLabel);
 
   return (
     <section className="view on">
       <div className="greet">
         <div>
-          <span className="eyebrow">{d.eyebrowDate}</span>
+          <span className="eyebrow">{fmt(d.eyebrowDate, { week })}</span>
           <h1 style={{ marginTop: 10 }}>{d.greeting}</h1>
           <p className="sub">{d.sub}</p>
         </div>

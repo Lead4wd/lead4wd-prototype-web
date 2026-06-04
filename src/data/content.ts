@@ -231,7 +231,7 @@ const en: Content = {
     assessment: "Re-take check",
   },
   topbar: { search: "Search lessons & skills", streakLabel: "{n}-day streak" },
-  profile: { name: "Ananya R.", role: "Team lead · Pro" },
+  profile: { name: "User", role: "Team lead · Pro" },
   pageTitles: {
     dashboard: "Home",
     journey: "Your 90-day journey",
@@ -308,8 +308,8 @@ const en: Content = {
     dummy: "This is a dummy button",
   },
   dashboard: {
-    eyebrowDate: "Tuesday · Week 2 of 12",
-    greeting: "Good morning, Ananya.",
+    eyebrowDate: "Week {week} of 12",
+    greeting: "Good morning, User.",
     sub: "You're building two habits this week — feedback and delegation. One small action today keeps the streak alive.",
     continueCta: "Continue today's lesson →",
     nextStepKicker: "YOUR NEXT BEST STEP · 4 MIN",
@@ -540,7 +540,7 @@ const hi: Content = {
     assessment: "दोबारा जाँच",
   },
   topbar: { search: "पाठ और कौशल खोजें", streakLabel: "{n}-दिन की लय" },
-  profile: { name: "अनन्या आर.", role: "टीम लीड · प्रो" },
+  profile: { name: "उपयोगकर्ता", role: "टीम लीड · प्रो" },
   pageTitles: {
     dashboard: "होम",
     journey: "आपकी 90-दिन की यात्रा",
@@ -612,8 +612,8 @@ const hi: Content = {
     dummy: "यह एक डमी बटन है",
   },
   dashboard: {
-    eyebrowDate: "मंगलवार · 12 में से सप्ताह 2",
-    greeting: "सुप्रभात, अनन्या।",
+    eyebrowDate: "12 में से सप्ताह {week}",
+    greeting: "सुप्रभात, उपयोगकर्ता।",
     sub: "इस हफ़्ते आप दो आदतें बना रहे हैं — फीडबैक और प्रत्यायोजन। आज एक छोटा कदम लय को बनाए रखता है।",
     continueCta: "आज का पाठ जारी रखें →",
     nextStepKicker: "आपका अगला बेहतरीन कदम · 4 मिनट",
@@ -842,7 +842,7 @@ const te: Content = {
     assessment: "మళ్లీ తనిఖీ",
   },
   topbar: { search: "పాఠాలు & నైపుణ్యాలను వెతకండి", streakLabel: "{n}-రోజుల స్ట్రీక్" },
-  profile: { name: "అనన్య ఆర్.", role: "టీమ్ లీడ్ · ప్రో" },
+  profile: { name: "వినియోగదారు", role: "టీమ్ లీడ్ · ప్రో" },
   pageTitles: {
     dashboard: "హోమ్",
     journey: "మీ 90-రోజుల ప్రయాణం",
@@ -914,8 +914,8 @@ const te: Content = {
     dummy: "ఇది ఒక డమ్మీ బటన్",
   },
   dashboard: {
-    eyebrowDate: "మంగళవారం · 12లో వారం 2",
-    greeting: "శుభోదయం, అనన్య.",
+    eyebrowDate: "12లో వారం {week}",
+    greeting: "శుభోదయం, వినియోగదారు.",
     sub: "ఈ వారం మీరు రెండు అలవాట్లను నిర్మిస్తున్నారు — ఫీడ్‌బ్యాక్ మరియు అప్పగింత. ఈరోజు ఒక చిన్న చర్య స్ట్రీక్‌ను నిలుపుతుంది.",
     continueCta: "నేటి పాఠాన్ని కొనసాగించండి →",
     nextStepKicker: "మీ తదుపరి ఉత్తమ అడుగు · 4 నిమి.",

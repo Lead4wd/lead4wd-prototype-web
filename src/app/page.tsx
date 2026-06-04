@@ -59,11 +59,17 @@ export default function Home() {
     setProgress((prev) => ({ ...prev, scores }));
   };
 
+  // Each login is a fresh user: start from scratch.
+  const handleLogin = () => {
+    setProgress(seedProgress());
+    setAppState("APP");
+  };
+
   if (appState === "ONBOARDING") {
     return <Onboarding c={c} onDone={() => setAppState("AUTH")} />;
   }
   if (appState === "AUTH") {
-    return <Auth c={c} onLogin={() => setAppState("APP")} />;
+    return <Auth c={c} onLogin={handleLogin} />;
   }
   return (
     <AppShell
