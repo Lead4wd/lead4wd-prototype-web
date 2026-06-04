@@ -134,6 +134,8 @@ export type Content = {
     nextStepKicker: string;
     nextStepTitle: string;
     nextStepDesc: string;
+    caughtUpTitle: string;
+    caughtUpDesc: string;
     planLabel: string;
     lessonsCompleted: string;
     actionsTried: string;
@@ -152,9 +154,12 @@ export type Content = {
   journey: {
     eyebrow: string;
     title: string;
-    pillTemplate: string; // "→ Week {week} in progress · {pct}% complete"
+    pillTemplate: string; // "→ {pct}% complete · Module {n} of {total}"
     resume: string;
-    phases: JourneyPhase[];
+    steps: string[]; // 3 generic "what you'll do" labels per module card
+    lockedTag: string;
+    comingTitle: string;
+    phases: JourneyPhase[]; // legacy mockup data; the journey now renders from modules.ts
   };
   lesson: {
     progress: string;
@@ -215,6 +220,16 @@ export type Content = {
     quotes: PulseQuote[];
     dummyNote: string;
     dummyClose: string;
+  };
+  player: {
+    back: string;
+    continue: string;
+    check: string;
+    correct: string;
+    incorrect: string;
+    bestMove: string;
+    complete: string;
+    counter: string; // "{n} / {total}"
   };
   language: { label: string; en: string; hi: string; te: string };
 };
@@ -312,14 +327,17 @@ const en: Content = {
     dummy: "This is a dummy button",
   },
   dashboard: {
-    eyebrowDate: "Week {week} of 12",
+    eyebrowDate: "Module {n} of {total}",
     greeting: "Good morning, User.",
     sub: "You're building two habits this week — feedback and delegation. One small action today keeps the streak alive.",
     continueCta: "Continue today's lesson →",
-    nextStepKicker: "YOUR NEXT BEST STEP · 4 MIN",
+    nextStepKicker: "YOUR NEXT BEST STEP · {n} MIN",
     nextStepTitle: "Give feedback that lands the same day",
     nextStepDesc:
       "Specific, timely feedback is the fastest way to build trust. Today's lesson gives you one line to try in your next 1:1.",
+    caughtUpTitle: "You're all caught up",
+    caughtUpDesc:
+      "You've finished the modules available right now. New ones unlock as your journey continues.",
     planLabel: "Plan",
     lessonsCompleted: "lessons completed",
     actionsTried: "actions tried",
@@ -343,8 +361,11 @@ const en: Content = {
   journey: {
     eyebrow: "12-week plan · personalised to your skills check",
     title: "Your 90-day journey",
-    pillTemplate: "→ Week {week} in progress · {pct}% complete",
+    pillTemplate: "→ {pct}% complete · Module {n} of {total}",
     resume: "Resume →",
+    steps: ["Learn the idea", "Practise & decide", "Try one micro-action"],
+    lockedTag: "Locked",
+    comingTitle: "More in your journey",
     phases: [
       {
         number: "Phase 01",
@@ -530,6 +551,16 @@ const en: Content = {
       "This is a dummy. Sending a real anonymous pulse to your team needs a backend, which this prototype doesn't have yet.",
     dummyClose: "Got it",
   },
+  player: {
+    back: "Exit",
+    continue: "Continue",
+    check: "Check answers",
+    correct: "Correct",
+    incorrect: "Not quite — try the other bucket",
+    bestMove: "Best move",
+    complete: "Complete · keep streak 🔥",
+    counter: "{n} / {total}",
+  },
   language: { label: "Language", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
 
@@ -621,14 +652,17 @@ const hi: Content = {
     dummy: "यह एक डमी बटन है",
   },
   dashboard: {
-    eyebrowDate: "12 में से सप्ताह {week}",
+    eyebrowDate: "{total} में से मॉड्यूल {n}",
     greeting: "सुप्रभात, उपयोगकर्ता।",
     sub: "इस हफ़्ते आप दो आदतें बना रहे हैं — फीडबैक और प्रत्यायोजन। आज एक छोटा कदम लय को बनाए रखता है।",
     continueCta: "आज का पाठ जारी रखें →",
-    nextStepKicker: "आपका अगला बेहतरीन कदम · 4 मिनट",
+    nextStepKicker: "आपका अगला बेहतरीन कदम · {n} मिनट",
     nextStepTitle: "उसी दिन असर करने वाला फीडबैक दें",
     nextStepDesc:
       "विशिष्ट और समय पर दिया गया फीडबैक भरोसा बनाने का सबसे तेज़ तरीका है। आज का पाठ आपको अगली 1:1 में आज़माने के लिए एक पंक्ति देता है।",
+    caughtUpTitle: "आप पूरी तरह अद्यतित हैं",
+    caughtUpDesc:
+      "अभी उपलब्ध मॉड्यूल आपने पूरे कर लिए हैं। यात्रा आगे बढ़ने पर नए मॉड्यूल खुलेंगे।",
     planLabel: "योजना",
     lessonsCompleted: "पाठ पूर्ण",
     actionsTried: "कार्य आज़माए",
@@ -652,8 +686,11 @@ const hi: Content = {
   journey: {
     eyebrow: "12-सप्ताह की योजना · आपकी कौशल जाँच के अनुसार",
     title: "आपकी 90-दिन की यात्रा",
-    pillTemplate: "→ सप्ताह {week} जारी · {pct}% पूर्ण",
+    pillTemplate: "→ {pct}% पूर्ण · {total} में से मॉड्यूल {n}",
     resume: "जारी रखें →",
+    steps: ["विचार समझें", "अभ्यास और निर्णय", "एक छोटा कार्य आज़माएँ"],
+    lockedTag: "लॉक",
+    comingTitle: "आपकी यात्रा में आगे",
     phases: [
       {
         number: "चरण 01",
@@ -837,6 +874,16 @@ const hi: Content = {
       "यह एक डमी है। आपकी टीम को असली गुमनाम पल्स भेजने के लिए बैकएंड चाहिए, जो इस प्रोटोटाइप में अभी नहीं है।",
     dummyClose: "ठीक है",
   },
+  player: {
+    back: "बाहर",
+    continue: "जारी रखें",
+    check: "उत्तर जाँचें",
+    correct: "सही",
+    incorrect: "बिलकुल नहीं — दूसरी बकेट आज़माएँ",
+    bestMove: "बेहतरीन कदम",
+    complete: "पूर्ण करें · लय बनाए रखें 🔥",
+    counter: "{n} / {total}",
+  },
   language: { label: "भाषा", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
 
@@ -928,14 +975,17 @@ const te: Content = {
     dummy: "ఇది ఒక డమ్మీ బటన్",
   },
   dashboard: {
-    eyebrowDate: "12లో వారం {week}",
+    eyebrowDate: "{total}లో మాడ్యూల్ {n}",
     greeting: "శుభోదయం, వినియోగదారు.",
     sub: "ఈ వారం మీరు రెండు అలవాట్లను నిర్మిస్తున్నారు — ఫీడ్‌బ్యాక్ మరియు అప్పగింత. ఈరోజు ఒక చిన్న చర్య స్ట్రీక్‌ను నిలుపుతుంది.",
     continueCta: "నేటి పాఠాన్ని కొనసాగించండి →",
-    nextStepKicker: "మీ తదుపరి ఉత్తమ అడుగు · 4 నిమి.",
+    nextStepKicker: "మీ తదుపరి ఉత్తమ అడుగు · {n} నిమి.",
     nextStepTitle: "అదే రోజు ప్రభావం చూపే ఫీడ్‌బ్యాక్ ఇవ్వండి",
     nextStepDesc:
       "నిర్దిష్టమైన, సమయానుకూల ఫీడ్‌బ్యాక్ నమ్మకాన్ని నిర్మించే అత్యంత వేగవంతమైన మార్గం. నేటి పాఠం మీ తదుపరి 1:1లో ప్రయత్నించడానికి ఒక వాక్యాన్ని ఇస్తుంది.",
+    caughtUpTitle: "మీరు పూర్తిగా తాజాగా ఉన్నారు",
+    caughtUpDesc:
+      "ప్రస్తుతం అందుబాటులో ఉన్న మాడ్యూల్‌లను మీరు పూర్తి చేశారు. ప్రయాణం కొనసాగుతున్న కొద్దీ కొత్తవి తెరుచుకుంటాయి.",
     planLabel: "ప్రణాళిక",
     lessonsCompleted: "పాఠాలు పూర్తి",
     actionsTried: "చర్యలు ప్రయత్నించారు",
@@ -959,8 +1009,11 @@ const te: Content = {
   journey: {
     eyebrow: "12-వారాల ప్రణాళిక · మీ నైపుణ్య తనిఖీకి అనుగుణంగా",
     title: "మీ 90-రోజుల ప్రయాణం",
-    pillTemplate: "→ వారం {week} జరుగుతోంది · {pct}% పూర్తి",
+    pillTemplate: "→ {pct}% పూర్తి · {total}లో మాడ్యూల్ {n}",
     resume: "కొనసాగించు →",
+    steps: ["భావనను నేర్చుకోండి", "అభ్యాసం & నిర్ణయం", "ఒక చిన్న చర్య ప్రయత్నించండి"],
+    lockedTag: "లాక్",
+    comingTitle: "మీ ప్రయాణంలో మరిన్ని",
     phases: [
       {
         number: "దశ 01",
@@ -1143,6 +1196,16 @@ const te: Content = {
     dummyNote:
       "ఇది ఒక డమ్మీ. మీ టీమ్‌కు నిజమైన అనామక పల్స్ పంపడానికి బ్యాకెండ్ అవసరం, ఇది ఈ ప్రోటోటైప్‌లో ఇంకా లేదు.",
     dummyClose: "సరే",
+  },
+  player: {
+    back: "నిష్క్రమించు",
+    continue: "కొనసాగించు",
+    check: "సమాధానాలు తనిఖీ చేయి",
+    correct: "సరైనది",
+    incorrect: "సరికాదు — మరో బకెట్ ప్రయత్నించండి",
+    bestMove: "ఉత్తమ ఎంపిక",
+    complete: "పూర్తి చేయి · స్ట్రీక్ నిలుపు 🔥",
+    counter: "{n} / {total}",
   },
   language: { label: "భాష", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };

@@ -1,11 +1,12 @@
 import { Fragment, useEffect, useState } from "react";
 import { SKILL_ORDER, type Content, type LanguageCode, type SkillId } from "@/data/content";
-import { type Progress, type View } from "@/lib/progress";
+import { MODULES, getModule } from "@/data/modules";
+import { currentModuleId, type Progress, type View } from "@/lib/progress";
 import { fmt } from "@/lib/format";
 import { Chevron, Check, Search, Menu } from "@/components/icons";
 import Dashboard from "@/components/views/Dashboard";
 import Journey from "@/components/views/Journey";
-import Lesson from "@/components/views/Lesson";
+import ModulePlayer from "@/components/ModulePlayer";
 import Assessment from "@/components/views/Assessment";
 import SkillsProfile from "@/components/views/SkillsProfile";
 import TeamPulse from "@/components/views/TeamPulse";
@@ -105,10 +106,8 @@ function searchIndex(c: Content): { label: string; view: View; tag: string }[] {
     view: "results" as View,
     tag: c.nav.results,
   }));
-  const lessons = c.journey.phases
-    .flatMap((p) => p.weeks)
-    .flatMap((w) => w.lessons.map((l) => ({ label: l.title, view: "journey" as View, tag: w.label })));
-  return [...pages, ...skills, ...lessons];
+  const modules = MODULES.map((m) => ({ label: m.title, view: "journey" as View, tag: m.cluster }));
+  return [...pages, ...skills, ...modules];
 }
 
 export default function AppShell({
@@ -117,7 +116,7 @@ export default function AppShell({
   languages,
   onChangeLanguage,
   progress,
-  onCompleteLesson,
+  onCompleteModule,
   onSubmitAssessment,
 }: {
   c: Content;
@@ -125,7 +124,7 @@ export default function AppShell({
   languages: { code: LanguageCode; label: string }[];
   onChangeLanguage: (l: LanguageCode) => void;
   progress: Progress;
-  onCompleteLesson: (reflection: string) => void;
+  onCompleteModule: (reflection: string) => void;
   onSubmitAssessment: (scores: Record<SkillId, number>) => void;
 }) {
   const [view, setView] = useState<View>("dashboard");
@@ -271,17 +270,35 @@ export default function AppShell({
           <div className="content">
             {view === "dashboard" && <Dashboard c={c} progress={progress} go={go} />}
             {view === "journey" && <Journey c={c} progress={progress} go={go} />}
-            {view === "lesson" && (
-              <Lesson
-                c={c}
-                progress={progress}
-                go={go}
-                onComplete={(reflection) => {
-                  onCompleteLesson(reflection);
-                  go("dashboard");
-                }}
-              />
-            )}
+            {view === "lesson" &&
+              (() => {
+                const cur = getModule(currentModuleId(progress.completedModules));
+                if (!cur) {
+                  return (
+                    <section className="view on">
+                      <div className="lesson">
+                        <span className="eyebrow">{c.nav.lesson}</span>
+                        <h1 style={{ marginTop: 10 }}>{c.dashboard.caughtUpTitle}</h1>
+                        <p className="sub" style={{ marginTop: 10 }}>{c.dashboard.caughtUpDesc}</p>
+                        <button className="btn btn-pri" style={{ marginTop: 22 }} onClick={() => go("journey")}>
+                          {c.nav.journey}
+                        </button>
+                      </div>
+                    </section>
+                  );
+                }
+                return (
+                  <ModulePlayer
+                    c={c}
+                    module={cur}
+                    go={go}
+                    onComplete={(reflection) => {
+                      onCompleteModule(reflection);
+                      go("dashboard");
+                    }}
+                  />
+                );
+              })()}
             {view === "results" && (
               <SkillsProfile c={c} scores={progress.scores} go={go} onRetake={() => go("assessment")} />
             )}

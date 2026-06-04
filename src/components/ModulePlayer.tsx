@@ -1,0 +1,325 @@
+"use client";
+
+import { useState } from "react";
+import type { Content } from "@/data/content";
+import type { ManagerModule, Screen } from "@/data/modules";
+import type { View } from "@/lib/progress";
+import { fmt } from "@/lib/format";
+import { ChevronLeft, Clock, Bolt, Check } from "@/components/icons";
+
+// ===========================================================================
+// Module player — sequences a module's interactive screens.
+// ===========================================================================
+export default function ModulePlayer({
+  c,
+  module,
+  go,
+  onComplete,
+}: {
+  c: Content;
+  module: ManagerModule;
+  go: (v: View) => void;
+  onComplete: (reflection: string) => void;
+}) {
+  const p = c.player;
+  const screens = module.screens;
+  const [idx, setIdx] = useState(0);
+  const [reflection, setReflection] = useState("");
+
+  const screen = screens[idx];
+  const isLast = idx === screens.length - 1;
+  const pct = Math.round(((idx + 1) / screens.length) * 100);
+
+  return (
+    <section className="view on">
+      <div className="lesson">
+        <div className="lbar">
+          <button className="back" onClick={() => go("dashboard")}>
+            <ChevronLeft />
+            {p.back}
+          </button>
+          <div className="ltrack track">
+            <i style={{ width: `${pct}%` }} />
+          </div>
+          <span className="mono" style={{ fontSize: 12, color: "var(--ink-faint)" }}>
+            {fmt(p.counter, { n: idx + 1, total: screens.length })}
+          </span>
+        </div>
+
+        <div className="mod-eyebrow">
+          <span className="eyebrow">{module.cluster}</span>
+          <span className="meta">
+            <Clock />
+            {fmt(c.common.minRead, { n: module.minutes })}
+          </span>
+        </div>
+
+        <ScreenView
+          key={idx}
+          screen={screen}
+          p={p}
+          reflection={reflection}
+          setReflection={setReflection}
+        />
+
+        <div className="lesson-foot">
+          <span className="mono" style={{ fontSize: 12, color: "var(--ink-faint)" }}>
+            {module.title}
+          </span>
+          <div style={{ display: "flex", gap: 12 }}>
+            {idx > 0 && (
+              <button className="btn btn-soft" onClick={() => setIdx((i) => i - 1)}>
+                {c.common.back}
+              </button>
+            )}
+            {isLast ? (
+              <button className="btn btn-pri" onClick={() => onComplete(reflection)}>
+                {p.complete}
+              </button>
+            ) : (
+              <button className="btn btn-pri" onClick={() => setIdx((i) => i + 1)}>
+                {p.continue}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+function ScreenView({
+  screen,
+  p,
+  reflection,
+  setReflection,
+}: {
+  screen: Screen;
+  p: Content["player"];
+  reflection: string;
+  setReflection: (s: string) => void;
+}) {
+  switch (screen.kind) {
+    case "hook":
+      return (
+        <div className="screen">
+          <h1>{screen.title}</h1>
+          <div className="lbody">
+            {screen.body.map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        </div>
+      );
+
+    case "compare":
+      return (
+        <div className="screen">
+          <h2 className="screen-h">{screen.title}</h2>
+          <div className="compare">
+            <div className="compare-col">
+              <span className="eyebrow">{screen.leftLabel}</span>
+              {screen.left.map((t, i) => (
+                <p key={i}>{t}</p>
+              ))}
+            </div>
+            <div className="compare-col accent">
+              <span className="eyebrow">{screen.rightLabel}</span>
+              {screen.right.map((t, i) => (
+                <p key={i}>{t}</p>
+              ))}
+            </div>
+          </div>
+          <p className="compare-highlight">{screen.highlight}</p>
+        </div>
+      );
+
+    case "lesson":
+      return (
+        <div className="screen">
+          <h2 className="screen-h">{screen.title}</h2>
+          <div className="points">
+            {screen.points.map((pt, i) => (
+              <div className="point" key={i}>
+                <span className="point-n">{i + 1}</span>
+                <div>
+                  <h4>{pt.h}</h4>
+                  <p>{pt.p}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          {screen.note && <p className="screen-note">{screen.note}</p>}
+        </div>
+      );
+
+    case "dragdrop":
+      return <ScreenDragDrop screen={screen} p={p} />;
+
+    case "selfcheck":
+      return <ScreenSelfCheck screen={screen} />;
+
+    case "scenario":
+      return <ScreenScenario screen={screen} p={p} />;
+
+    case "action":
+      return (
+        <div className="screen">
+          <div className="action-card">
+            <span className="k">{screen.title}</span>
+            <p style={{ color: "var(--on-dark)", marginTop: 10, fontSize: 15, lineHeight: 1.5 }}>{screen.intro}</p>
+          </div>
+          <div className="action-steps">
+            {screen.steps.map((s, i) => (
+              <div className="action-step" key={i}>
+                <span className="point-n">{i + 1}</span>
+                <p>{s}</p>
+              </div>
+            ))}
+          </div>
+          {screen.note && <p className="screen-note">{screen.note}</p>}
+        </div>
+      );
+
+    case "reflect":
+      return (
+        <div className="screen">
+          <h2 className="screen-h">{screen.title}</h2>
+          <ScreenReflectScale options={screen.scaleOptions} question={screen.scaleQuestion} />
+          <div className="reflect-card" style={{ marginTop: 18 }}>
+            <h4>{screen.textPrompt}</h4>
+            <textarea
+              placeholder={screen.placeholder}
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+            />
+          </div>
+          <p className="screen-note">{screen.closing}</p>
+        </div>
+      );
+  }
+}
+
+// ---------------------------------------------------------------------------
+function ScreenDragDrop({
+  screen,
+  p,
+}: {
+  screen: Extract<Screen, { kind: "dragdrop" }>;
+  p: Content["player"];
+}) {
+  const [picks, setPicks] = useState<Record<number, "left" | "right">>({});
+  const [checked, setChecked] = useState(false);
+  const allPicked = screen.items.every((_, i) => picks[i]);
+  const correctCount = screen.items.filter((it, i) => picks[i] === it.side).length;
+
+  return (
+    <div className="screen">
+      <h2 className="screen-h">{screen.title}</h2>
+      <p className="screen-prompt">{screen.prompt}</p>
+
+      <div className="sort-list">
+        {screen.items.map((it, i) => {
+          const pick = picks[i];
+          const right = pick === it.side;
+          return (
+            <div key={i} className={`sort-item ${checked ? (right ? "ok" : "bad") : ""}`}>
+              <span className="sort-text">{it.text}</span>
+              <div className="sort-btns">
+                {(["left", "right"] as const).map((side) => (
+                  <button
+                    key={side}
+                    className={`sort-btn ${pick === side ? "on" : ""}`}
+                    disabled={checked}
+                    onClick={() => setPicks((prev) => ({ ...prev, [i]: side }))}
+                  >
+                    {side === "left" ? screen.leftLabel : screen.rightLabel}
+                  </button>
+                ))}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {!checked ? (
+        <button className="btn btn-soft sort-check" disabled={!allPicked} onClick={() => setChecked(true)}>
+          {p.check}
+        </button>
+      ) : (
+        <p className="sort-summary">
+          {p.correct}: {correctCount} / {screen.items.length}
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+function ScreenSelfCheck({ screen }: { screen: Extract<Screen, { kind: "selfcheck" }> }) {
+  const [pick, setPick] = useState<number | null>(null);
+  return (
+    <div className="screen">
+      <h2 className="screen-h">{screen.title}</h2>
+      {screen.prompt && <p className="screen-prompt">{screen.prompt}</p>}
+      <div className="opts">
+        {screen.options.map((o, i) => (
+          <button key={i} className={`opt ${pick === i ? "on" : ""}`} onClick={() => setPick(i)}>
+            {o.text}
+          </button>
+        ))}
+      </div>
+      {pick !== null && <p className="opt-response">{screen.options[pick].response}</p>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+function ScreenScenario({
+  screen,
+  p,
+}: {
+  screen: Extract<Screen, { kind: "scenario" }>;
+  p: Content["player"];
+}) {
+  const [pick, setPick] = useState<number | null>(null);
+  return (
+    <div className="screen">
+      <h2 className="screen-h">{screen.title}</h2>
+      <p className="scenario-setup">{screen.setup}</p>
+      <p className="screen-prompt">{screen.question}</p>
+      <div className="opts">
+        {screen.choices.map((ch, i) => (
+          <button key={i} className={`opt ${pick === i ? "on" : ""}`} onClick={() => setPick(i)}>
+            <span>{ch.text}</span>
+            {pick === i && ch.best && (
+              <span className="best-badge">
+                <Check /> {p.bestMove}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      {pick !== null && <p className="opt-response">{screen.choices[pick].feedback}</p>}
+      {pick !== null && screen.followUp && <p className="screen-note">{screen.followUp}</p>}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+function ScreenReflectScale({ options, question }: { options: string[]; question: string }) {
+  const [pick, setPick] = useState<number | null>(null);
+  return (
+    <div className="scale-block">
+      <p className="screen-prompt">{question}</p>
+      <div className="scale-chips">
+        {options.map((o, i) => (
+          <button key={i} className={`scale-chip ${pick === i ? "on" : ""}`} onClick={() => setPick(i)}>
+            {o}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

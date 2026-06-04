@@ -1,14 +1,14 @@
 // ============================================================================
 // Lead4wd — progress model (the functional core)
 // ----------------------------------------------------------------------------
-// Everything the user "does" lives here: completed lessons, reflections, actions
-// tried, the streak counter, and assessment scores. Persisted to localStorage so
-// progress survives view navigation. Each login starts from scratch (see
-// seedProgress + page.tsx). The dashboard ring/KPIs/streak and the journey/skills
-// states are all DERIVED from this — nothing is hard-coded.
+// Tracks what the user has done: completed modules, reflections, actions tried,
+// the streak counter, and assessment scores. Persisted to localStorage so it
+// survives view navigation; each login starts from scratch (see page.tsx).
+// The dashboard ring/KPIs/streak and the journey states are all DERIVED here.
 // ============================================================================
 
-import { CONTENT, SKILL_ORDER, type SkillId, type WeekState } from "@/data/content";
+import { MODULE_IDS } from "@/data/modules";
+import type { SkillId } from "@/data/content";
 
 export type View =
   | "dashboard"
@@ -19,24 +19,18 @@ export type View =
   | "assessment";
 
 export type Progress = {
-  completedLessons: string[]; // lesson ids
-  actionsTried: string[]; // lesson ids where a reflection was written
-  reflections: Record<string, string>; // lessonId -> text
-  streak: number; // "functional dummy" — +1 per completed lesson
+  completedModules: string[]; // module ids
+  actionsTried: string[]; // module ids where a reflection was written
+  reflections: Record<string, string>; // moduleId -> text
+  streak: number; // functional dummy — +1 per completed module
   scores: Record<SkillId, number>; // from the skills check (0 until taken)
 };
 
-const STORAGE_KEY = "lead4wd_progress_v3";
+const STORAGE_KEY = "lead4wd_progress_v4";
 
-// The journey structure is identical across languages, so derive ordering once.
-const ALL_WEEKS = CONTENT.en.journey.phases.flatMap((p) => p.weeks);
-export const UNLOCKED_LESSON_IDS: string[] = ALL_WEEKS.filter((w) => !w.locked).flatMap(
-  (w) => w.lessons.map((l) => l.id)
-);
-export const TOTAL_LESSONS: number = ALL_WEEKS.flatMap((w) => w.lessons).length;
-
+const SKILLS: SkillId[] = ["communication", "listening", "delegation", "feedback", "conflict"];
 const zeroScores = (): Record<SkillId, number> =>
-  SKILL_ORDER.reduce((acc, id) => {
+  SKILLS.reduce((acc, id) => {
     acc[id] = 0;
     return acc;
   }, {} as Record<SkillId, number>);
@@ -44,13 +38,7 @@ const zeroScores = (): Record<SkillId, number> =>
 // --- persistence -------------------------------------------------------------
 /** A brand-new, from-scratch user: nothing done, no scores yet, streak 0. */
 export function seedProgress(): Progress {
-  return {
-    completedLessons: [],
-    actionsTried: [],
-    reflections: {},
-    streak: 0,
-    scores: zeroScores(),
-  };
+  return { completedModules: [], actionsTried: [], reflections: {}, streak: 0, scores: zeroScores() };
 }
 
 export function loadProgress(): Progress | null {
@@ -61,7 +49,7 @@ export function loadProgress(): Progress | null {
     const parsed = JSON.parse(raw) as Partial<Progress>;
     const base = seedProgress();
     return {
-      completedLessons: parsed.completedLessons ?? base.completedLessons,
+      completedModules: parsed.completedModules ?? base.completedModules,
       actionsTried: parsed.actionsTried ?? base.actionsTried,
       reflections: parsed.reflections ?? {},
       streak: typeof parsed.streak === "number" ? parsed.streak : 0,
@@ -82,52 +70,40 @@ export function saveProgress(p: Progress): void {
 }
 
 // --- derivations -------------------------------------------------------------
-/** First unlocked lesson the user hasn't completed (the "now" lesson), or null. */
-export function currentLessonId(completed: string[]): string | null {
+/** First module the user hasn't completed (the "now" module), or null if done. */
+export function currentModuleId(completed: string[]): string | null {
   const set = new Set(completed);
-  return UNLOCKED_LESSON_IDS.find((id) => !set.has(id)) ?? null;
+  return MODULE_IDS.find((id) => !set.has(id)) ?? null;
 }
 
 export function planPct(completed: string[]): number {
-  return Math.round((completed.length / TOTAL_LESSONS) * 100);
+  if (MODULE_IDS.length === 0) return 0;
+  return Math.round((completed.length / MODULE_IDS.length) * 100);
 }
 
-export function currentWeekNumber(nowLessonId: string | null): number {
-  if (!nowLessonId) return ALL_WEEKS.length;
-  const idx = ALL_WEEKS.findIndex((w) => w.lessons.some((l) => l.id === nowLessonId));
+/** 1-based position of the current module (or the total once everything's done). */
+export function currentModuleNumber(nowModuleId: string | null): number {
+  if (!nowModuleId) return MODULE_IDS.length;
+  const idx = MODULE_IDS.indexOf(nowModuleId);
   return idx >= 0 ? idx + 1 : 1;
 }
 
-export function lessonState(
+export const TOTAL_MODULES = MODULE_IDS.length;
+
+export function moduleState(
   id: string,
   completed: string[],
-  nowLessonId: string | null
+  nowModuleId: string | null
 ): "done" | "now" | "todo" {
   if (completed.includes(id)) return "done";
-  if (id === nowLessonId) return "now";
+  if (id === nowModuleId) return "now";
   return "todo";
-}
-
-export function weekState(
-  week: { locked?: boolean; lessons: { id: string }[] },
-  completed: string[],
-  nowLessonId: string | null
-): WeekState {
-  if (week.locked) return "locked";
-  const ids = week.lessons.map((l) => l.id);
-  if (ids.length && ids.every((id) => completed.includes(id))) return "done";
-  if (nowLessonId && ids.includes(nowLessonId)) return "now";
-  return "next";
 }
 
 export type StreakCell = { label: string; state: "done" | "today" | "todo" };
 
 /** A 7-cell calendar that fills as the streak grows. */
-export function streakCells(
-  streak: number,
-  weekdaysShort: string[],
-  todayLabel: string
-): StreakCell[] {
+export function streakCells(streak: number, weekdaysShort: string[], todayLabel: string): StreakCell[] {
   const cells: StreakCell[] = [];
   for (let i = 0; i < 7; i++) {
     const state: StreakCell["state"] = i < streak ? "done" : i === streak ? "today" : "todo";
@@ -136,19 +112,16 @@ export function streakCells(
   return cells;
 }
 
-/** Immutably record a completed lesson + its reflection, and bump the streak. */
-export function completeLesson(prev: Progress, lessonId: string, reflection: string): Progress {
+/** Immutably record a completed module + its reflection, and bump the streak. */
+export function completeModule(prev: Progress, moduleId: string, reflection: string): Progress {
   const text = reflection.trim();
-  const alreadyDone = prev.completedLessons.includes(lessonId);
+  const alreadyDone = prev.completedModules.includes(moduleId);
   return {
     ...prev,
-    completedLessons: alreadyDone ? prev.completedLessons : [...prev.completedLessons, lessonId],
+    completedModules: alreadyDone ? prev.completedModules : [...prev.completedModules, moduleId],
     actionsTried:
-      text && !prev.actionsTried.includes(lessonId)
-        ? [...prev.actionsTried, lessonId]
-        : prev.actionsTried,
-    reflections: text ? { ...prev.reflections, [lessonId]: text } : prev.reflections,
-    // Functional dummy streak: each newly completed lesson counts as a "day".
+      text && !prev.actionsTried.includes(moduleId) ? [...prev.actionsTried, moduleId] : prev.actionsTried,
+    reflections: text ? { ...prev.reflections, [moduleId]: text } : prev.reflections,
     streak: alreadyDone ? prev.streak : prev.streak + 1,
   };
 }

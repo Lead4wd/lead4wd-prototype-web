@@ -1,10 +1,12 @@
 import type { Content, SkillId } from "@/data/content";
 import { levelFromScore, pctFromScore } from "@/data/content";
+import { getModule } from "@/data/modules";
 import {
   planPct,
   streakCells,
-  currentLessonId,
-  currentWeekNumber,
+  currentModuleId,
+  currentModuleNumber,
+  TOTAL_MODULES,
   type Progress,
   type View,
 } from "@/lib/progress";
@@ -25,17 +27,22 @@ export default function Dashboard({
   go: (v: View) => void;
 }) {
   const d = c.dashboard;
-  const pct = planPct(progress.completedLessons);
-  const lessons = progress.completedLessons.length;
-  const actions = progress.actionsTried.length;
-  const week = currentWeekNumber(currentLessonId(progress.completedLessons));
+  const completed = progress.completedModules;
+  const pct = planPct(completed);
+  const nowId = currentModuleId(completed);
+  const current = getModule(nowId);
   const cells = streakCells(progress.streak, d.weekdaysShort, d.todayLabel);
+
+  // Hero reflects the current module (or an "all caught up" state).
+  const heroTitle = current ? current.title : d.caughtUpTitle;
+  const heroDesc = current ? current.summary : d.caughtUpDesc;
+  const heroMins = current ? current.minutes : c.lesson.minutes;
 
   return (
     <section className="view on">
       <div className="greet">
         <div>
-          <span className="eyebrow">{fmt(d.eyebrowDate, { week })}</span>
+          <span className="eyebrow">{fmt(d.eyebrowDate, { n: currentModuleNumber(nowId), total: TOTAL_MODULES })}</span>
           <h1 style={{ marginTop: 10 }}>{d.greeting}</h1>
           <p className="sub">{d.sub}</p>
         </div>
@@ -45,12 +52,12 @@ export default function Dashboard({
       </div>
 
       <div className="dash-grid">
-        {/* next best step */}
+        {/* next best step → current module */}
         <div className="next-hero">
           <div className="glow" />
-          <span className="k">{d.nextStepKicker}</span>
-          <h2>{d.nextStepTitle}</h2>
-          <p>{d.nextStepDesc}</p>
+          <span className="k">{fmt(d.nextStepKicker, { n: heroMins })}</span>
+          <h2>{heroTitle}</h2>
+          <p>{heroDesc}</p>
           <div className="row">
             <button
               className="btn"
@@ -61,7 +68,7 @@ export default function Dashboard({
             </button>
             <span className="meta">
               <Clock />
-              {fmt(c.common.minRead, { n: c.lesson.minutes })}
+              {fmt(c.common.minRead, { n: heroMins })}
             </span>
             <span className="meta">
               <Bolt />
@@ -95,11 +102,11 @@ export default function Dashboard({
             </div>
             <div className="kpis">
               <div className="kpi">
-                <span className="n">{lessons}</span>
+                <span className="n">{completed.length}</span>
                 <span className="l">{d.lessonsCompleted}</span>
               </div>
               <div className="kpi">
-                <span className="n" style={{ color: "var(--good)" }}>{actions}</span>
+                <span className="n" style={{ color: "var(--good)" }}>{progress.actionsTried.length}</span>
                 <span className="l">{d.actionsTried}</span>
               </div>
             </div>

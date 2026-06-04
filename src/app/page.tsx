@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { CONTENT, LANGUAGES, type LanguageCode, type SkillId } from "@/data/content";
 import {
-  completeLesson,
-  currentLessonId,
+  completeModule,
+  currentModuleId,
   loadProgress,
   saveProgress,
   seedProgress,
@@ -48,10 +48,10 @@ export default function Home() {
     localStorage.setItem("lead4wd_lang", l);
   };
 
-  const handleCompleteLesson = (reflection: string) => {
+  const handleCompleteModule = (reflection: string) => {
     setProgress((prev) => {
-      const id = currentLessonId(prev.completedLessons);
-      return id ? completeLesson(prev, id, reflection) : prev;
+      const id = currentModuleId(prev.completedModules);
+      return id ? completeModule(prev, id, reflection) : prev;
     });
   };
 
@@ -78,7 +78,7 @@ export default function Home() {
       languages={LANGUAGES}
       onChangeLanguage={changeLanguage}
       progress={progress}
-      onCompleteLesson={handleCompleteLesson}
+      onCompleteModule={handleCompleteModule}
       onSubmitAssessment={handleSubmitAssessment}
     />
   );
