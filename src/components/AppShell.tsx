@@ -1,15 +1,20 @@
+"use client";
+
 import { Fragment, useEffect, useState } from "react";
 import { SKILL_ORDER, type Content, type LanguageCode, type SkillId } from "@/data/content";
-import { MODULES, getModule } from "@/data/modules";
+import type { ManagerModule } from "@/data/modules";
 import { currentModuleId, type Progress, type View } from "@/lib/progress";
 import { fmt } from "@/lib/format";
 import { Chevron, Check, Search, Menu } from "@/components/icons";
 import Dashboard from "@/components/views/Dashboard";
 import Journey from "@/components/views/Journey";
-import ModulePlayer from "@/components/ModulePlayer";
+import ModulePlayer, { type ModuleResult } from "@/components/ModulePlayer";
 import Assessment from "@/components/views/Assessment";
 import SkillsProfile from "@/components/views/SkillsProfile";
 import TeamPulse from "@/components/views/TeamPulse";
+import AccountSettings from "@/components/AccountSettings";
+import CookieConsent from "@/components/CookieConsent";
+import type { AssessmentQuestion, ProfileRow } from "@/lib/data";
 
 type NavSection = {
   group: "coaching" | "insight";
@@ -91,8 +96,8 @@ const NAV: NavSection[] = [
   },
 ];
 
-// Build the searchable index (pages + skills + every journey lesson) for a language.
-function searchIndex(c: Content): { label: string; view: View; tag: string }[] {
+// Build the searchable index (pages + skills + every module) for a language.
+function searchIndex(c: Content, modules: ManagerModule[]): { label: string; view: View; tag: string }[] {
   const pages: { label: string; view: View; tag: string }[] = [
     { label: c.nav.home, view: "dashboard", tag: c.nav.coaching },
     { label: c.nav.journey, view: "journey", tag: c.nav.coaching },
@@ -106,8 +111,8 @@ function searchIndex(c: Content): { label: string; view: View; tag: string }[] {
     view: "results" as View,
     tag: c.nav.results,
   }));
-  const modules = MODULES.map((m) => ({ label: m.title, view: "journey" as View, tag: m.cluster }));
-  return [...pages, ...skills, ...modules];
+  const mods = modules.map((m) => ({ label: m.title, view: "journey" as View, tag: m.cluster }));
+  return [...pages, ...skills, ...mods];
 }
 
 export default function AppShell({
@@ -116,22 +121,33 @@ export default function AppShell({
   languages,
   onChangeLanguage,
   progress,
+  profile,
+  modules,
+  lockedClusters,
+  assessmentQuestions,
   onCompleteModule,
   onSubmitAssessment,
+  onProfileUpdated,
 }: {
   c: Content;
   language: LanguageCode;
   languages: { code: LanguageCode; label: string }[];
   onChangeLanguage: (l: LanguageCode) => void;
   progress: Progress;
-  onCompleteModule: (reflection: string) => void;
-  onSubmitAssessment: (scores: Record<SkillId, number>) => void;
+  profile: ProfileRow;
+  modules: ManagerModule[];
+  lockedClusters: string[];
+  assessmentQuestions: AssessmentQuestion[];
+  onCompleteModule: (moduleId: string, result: ModuleResult) => void;
+  onSubmitAssessment: (answers: (number | null)[], scores: Record<SkillId, number>) => void;
+  onProfileUpdated: (patch: Partial<ProfileRow>) => void;
 }) {
   const [view, setView] = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
 
   // Close popovers on any outside click.
   useEffect(() => {
@@ -152,9 +168,13 @@ export default function AppShell({
     setSearch("");
   };
 
+  const displayName = profile.display_name?.trim() || c.profile.name;
+  const moduleIds = modules.map((m) => m.id);
+  const cur = modules.find((m) => m.id === currentModuleId(progress.completedModules, moduleIds)) ?? null;
+
   const query = search.trim().toLowerCase();
   const results = query
-    ? searchIndex(c)
+    ? searchIndex(c, modules)
         .filter((r) => r.label.toLowerCase().includes(query))
         .slice(0, 8)
     : [];
@@ -188,13 +208,13 @@ export default function AppShell({
           ))}
 
           <div className="spacer" />
-          <div className="profile">
-            <div className="pf">{c.profile.name.charAt(0)}</div>
+          <button className="profile" onClick={() => setAccountOpen(true)} aria-label={c.account.title}>
+            <div className="pf">{displayName.charAt(0).toUpperCase()}</div>
             <div>
-              <div className="pn">{c.profile.name}</div>
-              <div className="pp">{c.profile.role}</div>
+              <div className="pn">{displayName}</div>
+              <div className="pp">{profile.role}</div>
             </div>
-          </div>
+          </button>
         </aside>
 
         {/* ---------------- Main ---------------- */}
@@ -268,37 +288,37 @@ export default function AppShell({
           </header>
 
           <div className="content">
-            {view === "dashboard" && <Dashboard c={c} progress={progress} go={go} />}
-            {view === "journey" && <Journey c={c} progress={progress} go={go} />}
+            {view === "dashboard" && (
+              <Dashboard c={c} progress={progress} go={go} modules={modules} userName={displayName} />
+            )}
+            {view === "journey" && (
+              <Journey c={c} progress={progress} go={go} modules={modules} lockedClusters={lockedClusters} />
+            )}
             {view === "lesson" &&
-              (() => {
-                const cur = getModule(currentModuleId(progress.completedModules));
-                if (!cur) {
-                  return (
-                    <section className="view on">
-                      <div className="lesson">
-                        <span className="eyebrow">{c.nav.lesson}</span>
-                        <h1 style={{ marginTop: 10 }}>{c.dashboard.caughtUpTitle}</h1>
-                        <p className="sub" style={{ marginTop: 10 }}>{c.dashboard.caughtUpDesc}</p>
-                        <button className="btn btn-pri" style={{ marginTop: 22 }} onClick={() => go("journey")}>
-                          {c.nav.journey}
-                        </button>
-                      </div>
-                    </section>
-                  );
-                }
-                return (
-                  <ModulePlayer
-                    c={c}
-                    module={cur}
-                    go={go}
-                    onComplete={(reflection) => {
-                      onCompleteModule(reflection);
-                      go("dashboard");
-                    }}
-                  />
-                );
-              })()}
+              (cur ? (
+                <ModulePlayer
+                  c={c}
+                  module={cur}
+                  go={go}
+                  onComplete={(result) => {
+                    onCompleteModule(cur.id, result);
+                    go("dashboard");
+                  }}
+                />
+              ) : (
+                <section className="view on">
+                  <div className="lesson">
+                    <span className="eyebrow">{c.nav.lesson}</span>
+                    <h1 style={{ marginTop: 10 }}>{c.dashboard.caughtUpTitle}</h1>
+                    <p className="sub" style={{ marginTop: 10 }}>
+                      {c.dashboard.caughtUpDesc}
+                    </p>
+                    <button className="btn btn-pri" style={{ marginTop: 22 }} onClick={() => go("journey")}>
+                      {c.nav.journey}
+                    </button>
+                  </div>
+                </section>
+              ))}
             {view === "results" && (
               <SkillsProfile c={c} scores={progress.scores} go={go} onRetake={() => go("assessment")} />
             )}
@@ -306,9 +326,10 @@ export default function AppShell({
             {view === "assessment" && (
               <Assessment
                 c={c}
+                questions={assessmentQuestions}
                 onExit={() => go("dashboard")}
-                onComplete={(scores) => {
-                  onSubmitAssessment(scores);
+                onComplete={(answers, scores) => {
+                  onSubmitAssessment(answers, scores);
                   go("results");
                 }}
               />
@@ -316,6 +337,21 @@ export default function AppShell({
           </div>
         </div>
       </div>
+
+      {accountOpen && (
+        <AccountSettings
+          c={c}
+          profile={profile}
+          languages={languages}
+          onClose={() => setAccountOpen(false)}
+          onUpdated={(patch) => {
+            onProfileUpdated(patch);
+            if (patch.language && patch.language !== language) onChangeLanguage(patch.language as LanguageCode);
+          }}
+        />
+      )}
+
+      <CookieConsent c={c} />
     </>
   );
 }

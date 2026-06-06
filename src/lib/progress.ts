@@ -1,13 +1,10 @@
 // ============================================================================
-// Lead4wd — progress model (the functional core)
+// Lead4wd — progress derivations (pure)
 // ----------------------------------------------------------------------------
-// Tracks what the user has done: completed modules, reflections, actions tried,
-// the streak counter, and assessment scores. Persisted to localStorage so it
-// survives view navigation; each login starts from scratch (see page.tsx).
-// The dashboard ring/KPIs/streak and the journey states are all DERIVED here.
+// The Progress shape + every derived UI value. State now lives in Supabase
+// (see src/lib/data.ts); these helpers are pure and take the module list as
+// input, since modules are fetched from the DB at runtime.
 // ============================================================================
-
-import { MODULE_IDS } from "@/data/modules";
 import type { SkillId } from "@/data/content";
 
 export type View =
@@ -22,11 +19,9 @@ export type Progress = {
   completedModules: string[]; // module ids
   actionsTried: string[]; // module ids where a reflection was written
   reflections: Record<string, string>; // moduleId -> text
-  streak: number; // functional dummy — +1 per completed module
-  scores: Record<SkillId, number>; // from the skills check (0 until taken)
+  streak: number; // +1 per completed module
+  scores: Record<SkillId, number>; // derived from the skills check (0 until taken)
 };
-
-const STORAGE_KEY = "lead4wd_progress_v4";
 
 const SKILLS: SkillId[] = ["communication", "listening", "delegation", "feedback", "conflict"];
 const zeroScores = (): Record<SkillId, number> =>
@@ -35,60 +30,29 @@ const zeroScores = (): Record<SkillId, number> =>
     return acc;
   }, {} as Record<SkillId, number>);
 
-// --- persistence -------------------------------------------------------------
-/** A brand-new, from-scratch user: nothing done, no scores yet, streak 0. */
-export function seedProgress(): Progress {
+/** Initial client state before the user's data has loaded. */
+export function emptyProgress(): Progress {
   return { completedModules: [], actionsTried: [], reflections: {}, streak: 0, scores: zeroScores() };
-}
-
-export function loadProgress(): Progress | null {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<Progress>;
-    const base = seedProgress();
-    return {
-      completedModules: parsed.completedModules ?? base.completedModules,
-      actionsTried: parsed.actionsTried ?? base.actionsTried,
-      reflections: parsed.reflections ?? {},
-      streak: typeof parsed.streak === "number" ? parsed.streak : 0,
-      scores: { ...base.scores, ...(parsed.scores ?? {}) },
-    };
-  } catch {
-    return null;
-  }
-}
-
-export function saveProgress(p: Progress): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(p));
-  } catch {
-    /* storage full / unavailable — ignore for a prototype */
-  }
 }
 
 // --- derivations -------------------------------------------------------------
 /** First module the user hasn't completed (the "now" module), or null if done. */
-export function currentModuleId(completed: string[]): string | null {
+export function currentModuleId(completed: string[], moduleIds: string[]): string | null {
   const set = new Set(completed);
-  return MODULE_IDS.find((id) => !set.has(id)) ?? null;
+  return moduleIds.find((id) => !set.has(id)) ?? null;
 }
 
-export function planPct(completed: string[]): number {
-  if (MODULE_IDS.length === 0) return 0;
-  return Math.round((completed.length / MODULE_IDS.length) * 100);
+export function planPct(completed: string[], total: number): number {
+  if (total === 0) return 0;
+  return Math.round((completed.length / total) * 100);
 }
 
 /** 1-based position of the current module (or the total once everything's done). */
-export function currentModuleNumber(nowModuleId: string | null): number {
-  if (!nowModuleId) return MODULE_IDS.length;
-  const idx = MODULE_IDS.indexOf(nowModuleId);
+export function currentModuleNumber(nowModuleId: string | null, moduleIds: string[]): number {
+  if (!nowModuleId) return moduleIds.length;
+  const idx = moduleIds.indexOf(nowModuleId);
   return idx >= 0 ? idx + 1 : 1;
 }
-
-export const TOTAL_MODULES = MODULE_IDS.length;
 
 export function moduleState(
   id: string,
@@ -112,7 +76,7 @@ export function streakCells(streak: number, weekdaysShort: string[], todayLabel:
   return cells;
 }
 
-/** Immutably record a completed module + its reflection, and bump the streak. */
+/** Immutably record a completed module + reflection, bumping the streak (optimistic local update). */
 export function completeModule(prev: Progress, moduleId: string, reflection: string): Progress {
   const text = reflection.trim();
   const alreadyDone = prev.completedModules.includes(moduleId);

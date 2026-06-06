@@ -1,19 +1,23 @@
 # src/lib — functional core
 
-`progress.ts` is the single source of "what the user has done" and every derived
-number the UI shows. `format.ts` has tiny string/class helpers (`fmt`, `levelKey`,
-`barClass`).
+`progress.ts` holds the `Progress` shape + **pure** derivations. `data.ts` is the
+Supabase data access layer (content + per-user state). `supabase/` has the
+browser/server clients + generated `database.types.ts`. `format.ts` has tiny
+string/class helpers (`fmt`, `levelKey`, `barClass`).
 
-## progress.ts rules
-- State shape: `completedLessons`, `actionsTried`, `reflections`, `activeDates`
-  (streak), `scores`. Persisted to `localStorage` key `lead4wd_progress_v2`.
-- **Derive, don't store:** ring %, streak count + calendar, journey week/lesson
-  states, and the current lesson are all computed (`planPct`, `computeStreak`,
-  `streakCells`, `currentLessonId`, `lessonState`, `weekState`). Don't cache them
-  in the content model or component state.
-- Journey ordering comes from `CONTENT.en.journey` (structure is identical across
-  languages); lessons are keyed by stable `id`.
-- Updates are immutable — `completeLesson` returns a new object. `page.tsx`
-  persists with a hydration guard so the seed never overwrites stored data.
-- `seedProgress()` is the persona's starting state (mid-Week-2, 5-day streak);
-  change it intentionally.
+## progress.ts rules (pure only)
+- `Progress` = `completedModules`, `actionsTried`, `reflections`, `streak`,
+  `scores`. No persistence here — state lives in Supabase (see `data.ts`).
+- **Derive, don't store:** ring %, streak calendar, module state, the current
+  module — all computed. Module-dependent helpers take the fetched module-id list
+  (`currentModuleId(completed, moduleIds)`, `planPct(completed, total)`,
+  `currentModuleNumber`, `moduleState`); `streakCells`, `completeModule` are pure.
+- `emptyProgress()` is the pre-load default (everything zero).
+
+## data.ts rules
+- Content fetchers: `fetchModules`, `fetchLockedClusters`,
+  `fetchAssessmentQuestions(lang)`, `fetchOnboardingQuestions(lang)`.
+- Per-user: `loadProfile`, `loadUserState` (→ `Progress`), `updateProfile`,
+  `saveOnboardingAnswers`, `saveAssessmentAnswers`, `saveModuleCompletion`
+  (aggregate + per-question `question_attempts` + streak). `computeScores` derives
+  per-skill scores from raw answers. All gated by RLS (`user_id = auth.uid()`).

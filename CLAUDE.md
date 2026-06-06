@@ -2,7 +2,9 @@
 
 Micro-learning / coaching web app for first-time managers: a 1–5 skills check, a
 personalised 12-week journey, daily micro-lessons, and an anonymous team pulse.
-**Prototype** — all data is mock and client-side; there is no backend.
+**Prototype** with a **Supabase** backend (Postgres + Auth + RLS): real
+email/password accounts, per-user progress, and the modules + skills-check
+questions served from the DB. UI chrome copy stays in the trilingual content model.
 
 This file holds rules that apply **everywhere**. Module-specific guidance lives in
 nested `CLAUDE.md` files (see _Where things live_). The full architecture and
@@ -13,6 +15,9 @@ it is intentionally **not** auto-loaded.
 - Next.js 16 (App Router, Turbopack) · React 19 · TypeScript (strict)
 - Plain-CSS design system in `src/app/globals.css` — no Tailwind, no CSS-in-JS
 - Fonts via `next/font`; deployed on Vercel
+- **Supabase** (Postgres + Auth + RLS) via `@supabase/ssr` — cookie sessions
+  (persist across tab close). `src/proxy.ts` is Next 16's renamed `middleware`
+  and refreshes the session. Env: `NEXT_PUBLIC_SUPABASE_URL` / `..._ANON_KEY`.
 - Import alias: `@/*` → `src/*`
 
 ## Commands

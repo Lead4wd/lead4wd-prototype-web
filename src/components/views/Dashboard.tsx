@@ -1,12 +1,11 @@
 import type { Content, SkillId } from "@/data/content";
 import { levelFromScore, pctFromScore } from "@/data/content";
-import { getModule } from "@/data/modules";
+import type { ManagerModule } from "@/data/modules";
 import {
   planPct,
   streakCells,
   currentModuleId,
   currentModuleNumber,
-  TOTAL_MODULES,
   type Progress,
   type View,
 } from "@/lib/progress";
@@ -17,21 +16,35 @@ const R = 46;
 const CIRC = 2 * Math.PI * R;
 const FOCUS_SKILLS: SkillId[] = ["feedback", "delegation"];
 
+function greetingKey(): "morning" | "afternoon" | "evening" {
+  const h = new Date().getHours();
+  if (h < 12) return "morning";
+  if (h < 18) return "afternoon";
+  return "evening";
+}
+
 export default function Dashboard({
   c,
   progress,
   go,
+  modules,
+  userName,
 }: {
   c: Content;
   progress: Progress;
   go: (v: View) => void;
+  modules: ManagerModule[];
+  userName: string;
 }) {
   const d = c.dashboard;
+  const moduleIds = modules.map((m) => m.id);
   const completed = progress.completedModules;
-  const pct = planPct(completed);
-  const nowId = currentModuleId(completed);
-  const current = getModule(nowId);
+  const pct = planPct(completed, moduleIds.length);
+  const nowId = currentModuleId(completed, moduleIds);
+  const current = modules.find((m) => m.id === nowId) ?? null;
   const cells = streakCells(progress.streak, d.weekdaysShort, d.todayLabel);
+
+  const greeting = fmt(d.greetings[greetingKey()], { name: userName });
 
   // Hero reflects the current module (or an "all caught up" state).
   const heroTitle = current ? current.title : d.caughtUpTitle;
@@ -42,8 +55,10 @@ export default function Dashboard({
     <section className="view on">
       <div className="greet">
         <div>
-          <span className="eyebrow">{fmt(d.eyebrowDate, { n: currentModuleNumber(nowId), total: TOTAL_MODULES })}</span>
-          <h1 style={{ marginTop: 10 }}>{d.greeting}</h1>
+          <span className="eyebrow">
+            {fmt(d.eyebrowDate, { n: currentModuleNumber(nowId, moduleIds), total: moduleIds.length })}
+          </span>
+          <h1 style={{ marginTop: 10 }}>{greeting}</h1>
           <p className="sub">{d.sub}</p>
         </div>
         <button className="btn btn-pri" onClick={() => go("lesson")}>
@@ -106,7 +121,9 @@ export default function Dashboard({
                 <span className="l">{d.lessonsCompleted}</span>
               </div>
               <div className="kpi">
-                <span className="n" style={{ color: "var(--good)" }}>{progress.actionsTried.length}</span>
+                <span className="n" style={{ color: "var(--good)" }}>
+                  {progress.actionsTried.length}
+                </span>
                 <span className="l">{d.actionsTried}</span>
               </div>
             </div>

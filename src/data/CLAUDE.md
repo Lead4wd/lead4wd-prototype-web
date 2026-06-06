@@ -1,7 +1,13 @@
 # src/data — content & i18n
 
-`content.ts` is all user-facing copy + the skill model. No backend; this is the
-content layer. (Runtime state lives in `@/lib/progress`, not here.)
+`content.ts` is the trilingual UI-chrome copy + skill model. (Runtime state lives
+in Supabase via `@/lib/data`, not here.)
+
+> **Now backed by Supabase:** the learning **modules** + the **assessment /
+> onboarding questions** are served from the DB at runtime. `modules.ts` and the
+> `onboarding.questions` / `assessment.questions` arrays here are kept as the
+> **seed source** only — `scripts/dump-content.ts` regenerates `supabase/seed.sql`
+> from them. The app no longer reads modules/questions from code.
 
 ## Shape
 - `CONTENT: Record<LanguageCode, Content>` — every UI string, keyed by language

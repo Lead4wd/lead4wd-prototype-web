@@ -2,75 +2,206 @@
 
 import { useEffect, useState } from "react";
 import { CONTENT, LANGUAGES, type LanguageCode, type SkillId } from "@/data/content";
+import type { ManagerModule } from "@/data/modules";
+import { completeModule, emptyProgress, type Progress } from "@/lib/progress";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
-  completeModule,
-  currentModuleId,
-  loadProgress,
-  saveProgress,
-  seedProgress,
-  type Progress,
-} from "@/lib/progress";
+  fetchModules,
+  fetchLockedClusters,
+  fetchAssessmentQuestions,
+  fetchOnboardingQuestions,
+  loadProfile,
+  loadUserState,
+  saveAssessmentAnswers,
+  saveModuleCompletion,
+  saveOnboardingAnswers,
+  updateProfile,
+  type AssessmentQuestion,
+  type OnboardingQuestion,
+  type ProfileRow,
+} from "@/lib/data";
+import type { ModuleResult } from "@/components/ModulePlayer";
 import Onboarding from "@/components/Onboarding";
 import Auth from "@/components/Auth";
+import FirstRun from "@/components/FirstRun";
 import AppShell from "@/components/AppShell";
 
-type AppState = "ONBOARDING" | "AUTH" | "APP";
+type Phase = "loading" | "intro" | "auth" | "firstrun" | "app";
+type SessionUser = { id: string; email: string | null };
+
+function Splash() {
+  return (
+    <div className="entry">
+      <div className="entry-card">
+        <div className="entry-brand">
+          <span className="arr">→</span>Lead4wd
+        </div>
+        <p className="lede">…</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
-  const [appState, setAppState] = useState<AppState>("ONBOARDING");
+  const sb = getSupabaseBrowserClient();
+
+  const [phase, setPhase] = useState<Phase>("loading");
   const [language, setLanguage] = useState<LanguageCode>("en");
-  const [progress, setProgress] = useState<Progress>(seedProgress);
-  const [hydrated, setHydrated] = useState(false);
+  const [user, setUser] = useState<SessionUser | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [progress, setProgress] = useState<Progress>(emptyProgress);
+
+  const [modules, setModules] = useState<ManagerModule[]>([]);
+  const [lockedClusters, setLockedClusters] = useState<string[]>([]);
+  const [onboardingQuestions, setOnboardingQuestions] = useState<OnboardingQuestion[]>([]);
+  const [assessmentQuestions, setAssessmentQuestions] = useState<AssessmentQuestion[]>([]);
 
   const c = CONTENT[language];
 
-  // Load persisted language + progress once on mount (client only).
+  // ---- content + session bootstrap (once) ----
   useEffect(() => {
-    const l = localStorage.getItem("lead4wd_lang") as LanguageCode | null;
-    if (l && LANGUAGES.some((x) => x.code === l)) setLanguage(l);
-    const stored = loadProgress();
-    if (stored) setProgress(stored);
-    setHydrated(true);
+    let active = true;
+
+    try {
+      const l = localStorage.getItem("lead4wd_lang");
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      if (l && LANGUAGES.some((x) => x.code === l)) setLanguage(l as LanguageCode);
+    } catch {
+      /* ignore */
+    }
+
+    void Promise.all([fetchModules(), fetchLockedClusters()]).then(([m, lc]) => {
+      if (!active) return;
+      setModules(m);
+      setLockedClusters(lc);
+    });
+
+    const handle = async (session: { user: { id: string; email?: string } } | null) => {
+      if (!session?.user) {
+        setUser(null);
+        setProfile(null);
+        setProgress(emptyProgress());
+        setPhase((prev) => (prev === "auth" ? "auth" : "intro"));
+        return;
+      }
+      const u: SessionUser = { id: session.user.id, email: session.user.email ?? null };
+      setUser(u);
+      const prof =
+        (await loadProfile(u.id)) ??
+        ({
+          id: u.id,
+          display_name: u.email?.split("@")[0] ?? null,
+          role: CONTENT.en.profile.role,
+          language: "en",
+          streak: 0,
+          onboarded: false,
+        } satisfies ProfileRow);
+      if (!active) return;
+      setProfile(prof);
+      if (LANGUAGES.some((x) => x.code === prof.language)) setLanguage(prof.language as LanguageCode);
+      if (prof.onboarded) {
+        const pr = await loadUserState(u.id);
+        if (!active) return;
+        setProgress(pr);
+        setPhase("app");
+      } else {
+        setPhase("firstrun");
+      }
+    };
+
+    void sb.auth.getSession().then(({ data }) => handle(data.session));
+    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
+      void handle(session);
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Persist progress after hydration (so we never overwrite stored data with the seed).
+  // ---- language-specific question text + <html lang> ----
   useEffect(() => {
-    if (hydrated) saveProgress(progress);
-  }, [progress, hydrated]);
-
-  // Reflect language on <html> for a11y / font fallback.
-  useEffect(() => {
+    let active = true;
     document.documentElement.lang = language;
+    void Promise.all([fetchOnboardingQuestions(language), fetchAssessmentQuestions(language)]).then(([oq, aq]) => {
+      if (!active) return;
+      setOnboardingQuestions(oq);
+      setAssessmentQuestions(aq);
+    });
+    return () => {
+      active = false;
+    };
   }, [language]);
 
   const changeLanguage = (l: LanguageCode) => {
     setLanguage(l);
-    localStorage.setItem("lead4wd_lang", l);
+    try {
+      localStorage.setItem("lead4wd_lang", l);
+    } catch {
+      /* ignore */
+    }
+    if (user) void updateProfile(user.id, { language: l });
   };
 
-  const handleCompleteModule = (reflection: string) => {
-    setProgress((prev) => {
-      const id = currentModuleId(prev.completedModules);
-      return id ? completeModule(prev, id, reflection) : prev;
+  const handleFirstRun = async (data: {
+    onboardingAnswers: (number | null)[];
+    assessmentAnswers: (number | null)[];
+    scores: Record<SkillId, number>;
+  }) => {
+    if (!user) return;
+    await Promise.all([
+      saveOnboardingAnswers(user.id, data.onboardingAnswers),
+      saveAssessmentAnswers(user.id, data.assessmentAnswers),
+      updateProfile(user.id, { onboarded: true }),
+    ]);
+    setProfile((p) => (p ? { ...p, onboarded: true } : p));
+    setProgress((prev) => ({ ...prev, scores: data.scores }));
+    setPhase("app");
+  };
+
+  const handleCompleteModule = async (moduleId: string, result: ModuleResult) => {
+    if (!user) return;
+    const already = progress.completedModules.includes(moduleId);
+    const optimistic = completeModule(progress, moduleId, result.reflection);
+    setProgress(optimistic);
+    await saveModuleCompletion(user.id, moduleId, {
+      quizCorrect: result.quizCorrect,
+      quizTotal: result.quizTotal,
+      scorePct: result.scorePct,
+      reflection: result.reflection,
+      attempts: result.attempts,
+      newStreak: optimistic.streak,
+      alreadyCompleted: already,
     });
   };
 
-  const handleSubmitAssessment = (scores: Record<SkillId, number>) => {
+  const handleSubmitAssessment = async (answers: (number | null)[], scores: Record<SkillId, number>) => {
+    if (!user) return;
     setProgress((prev) => ({ ...prev, scores }));
+    await saveAssessmentAnswers(user.id, answers);
   };
 
-  // Each login is a fresh user: start from scratch.
-  const handleLogin = () => {
-    setProgress(seedProgress());
-    setAppState("APP");
+  const handleProfileUpdated = (patch: Partial<ProfileRow>) => {
+    setProfile((p) => (p ? { ...p, ...patch } : p));
   };
 
-  if (appState === "ONBOARDING") {
-    return <Onboarding c={c} onDone={() => setAppState("AUTH")} />;
+  // ---- render ----
+  if (phase === "loading") return <Splash />;
+  if (phase === "intro") return <Onboarding c={c} onDone={() => setPhase("auth")} />;
+  if (phase === "auth") return <Auth c={c} />;
+  if (phase === "firstrun") {
+    return (
+      <FirstRun
+        c={c}
+        onboardingQuestions={onboardingQuestions}
+        assessmentQuestions={assessmentQuestions}
+        onComplete={handleFirstRun}
+      />
+    );
   }
-  if (appState === "AUTH") {
-    return <Auth c={c} onLogin={handleLogin} />;
-  }
+  if (!profile) return <Splash />;
   return (
     <AppShell
       c={c}
@@ -78,8 +209,13 @@ export default function Home() {
       languages={LANGUAGES}
       onChangeLanguage={changeLanguage}
       progress={progress}
+      profile={profile}
+      modules={modules}
+      lockedClusters={lockedClusters}
+      assessmentQuestions={assessmentQuestions}
       onCompleteModule={handleCompleteModule}
       onSubmitAssessment={handleSubmitAssessment}
+      onProfileUpdated={handleProfileUpdated}
     />
   );
 }

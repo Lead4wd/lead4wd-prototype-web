@@ -125,10 +125,40 @@ export type Content = {
     noAccount: string;
     signUp: string;
     dummy: string;
+    namePlaceholder: string;
+    signupTitle: string;
+    signupSub: string;
+    createAccount: string;
+    haveAccount: string;
+    working: string;
+    forgotSent: string;
+    forgotPrompt: string;
+    error: string;
   };
+  account: {
+    title: string;
+    nameLabel: string;
+    roleLabel: string;
+    languageLabel: string;
+    save: string;
+    saved: string;
+    passwordTitle: string;
+    newPassword: string;
+    updatePassword: string;
+    passwordUpdated: string;
+    dangerTitle: string;
+    dangerDesc: string;
+    deleteCta: string;
+    confirmHint: string;
+    confirmWord: string;
+    deleting: string;
+    signOut: string;
+    close: string;
+  };
+  cookie: { message: string; accept: string };
   dashboard: {
     eyebrowDate: string;
-    greeting: string;
+    greetings: { morning: string; afternoon: string; evening: string };
     sub: string;
     continueCta: string;
     nextStepKicker: string;
@@ -157,6 +187,7 @@ export type Content = {
     pillTemplate: string; // "→ {pct}% complete · Module {n} of {total}"
     resume: string;
     steps: string[]; // 3 generic "what you'll do" labels per module card
+    moduleTag: string; // "Module {n}"
     lockedTag: string;
     comingTitle: string;
     phases: JourneyPhase[]; // legacy mockup data; the journey now renders from modules.ts
@@ -230,6 +261,10 @@ export type Content = {
     bestMove: string;
     complete: string;
     counter: string; // "{n} / {total}"
+    lockedMsg: string;
+    retakeMsg: string; // "…{pct}%…"
+    retake: string;
+    goToQuestions: string;
   };
   language: { label: string; en: string; hi: string; te: string };
 };
@@ -325,10 +360,47 @@ const en: Content = {
     noAccount: "Don't have an account?",
     signUp: "Sign up",
     dummy: "This is a dummy button",
+    namePlaceholder: "Your name",
+    signupTitle: "Create your account",
+    signupSub: "Sign up to start your journey — your progress is saved to your account.",
+    createAccount: "Create account",
+    haveAccount: "Already have an account?",
+    working: "Please wait…",
+    forgotSent: "Check your email for a password reset link.",
+    forgotPrompt: "Enter your email above first, then tap Forgot password.",
+    error: "Something went wrong. Check your details and try again.",
+  },
+  account: {
+    title: "Account settings",
+    nameLabel: "Display name",
+    roleLabel: "Role",
+    languageLabel: "Language",
+    save: "Save changes",
+    saved: "Saved.",
+    passwordTitle: "Change password",
+    newPassword: "New password",
+    updatePassword: "Update password",
+    passwordUpdated: "Password updated.",
+    dangerTitle: "Delete account",
+    dangerDesc: "This permanently deletes your account and all your progress. This cannot be undone.",
+    deleteCta: "Delete my account",
+    confirmHint: "Type DELETE to confirm",
+    confirmWord: "DELETE",
+    deleting: "Deleting…",
+    signOut: "Log out",
+    close: "Close",
+  },
+  cookie: {
+    message: "We use essential cookies to keep you signed in. No tracking.",
+    accept: "Got it",
   },
   dashboard: {
     eyebrowDate: "Module {n} of {total}",
-    greeting: "Good morning, User.",
+    greetings: {
+      morning: "Good morning, {name}.",
+      afternoon: "Good afternoon, {name}.",
+      evening: "Good evening, {name}.",
+    },
     sub: "You're building two habits this week — feedback and delegation. One small action today keeps the streak alive.",
     continueCta: "Continue today's lesson →",
     nextStepKicker: "YOUR NEXT BEST STEP · {n} MIN",
@@ -364,6 +436,7 @@ const en: Content = {
     pillTemplate: "→ {pct}% complete · Module {n} of {total}",
     resume: "Resume →",
     steps: ["Learn the idea", "Practise & decide", "Try one micro-action"],
+    moduleTag: "Module {n}",
     lockedTag: "Locked",
     comingTitle: "More in your journey",
     phases: [
@@ -560,6 +633,10 @@ const en: Content = {
     bestMove: "Best move",
     complete: "Complete · keep streak 🔥",
     counter: "{n} / {total}",
+    lockedMsg: "Answer the questions in this module to unlock the next one.",
+    retakeMsg: "You scored {pct}%. Score at least 60% to unlock the next module — give it another go.",
+    retake: "Retake module",
+    goToQuestions: "Go to the questions",
   },
   language: { label: "Language", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
@@ -650,10 +727,47 @@ const hi: Content = {
     noAccount: "खाता नहीं है?",
     signUp: "साइन अप",
     dummy: "यह एक डमी बटन है",
+    namePlaceholder: "आपका नाम",
+    signupTitle: "अपना खाता बनाएँ",
+    signupSub: "अपनी यात्रा शुरू करने के लिए साइन अप करें — आपकी प्रगति आपके खाते में सहेजी जाती है।",
+    createAccount: "खाता बनाएँ",
+    haveAccount: "पहले से खाता है?",
+    working: "कृपया प्रतीक्षा करें…",
+    forgotSent: "पासवर्ड रीसेट लिंक के लिए अपना ईमेल देखें।",
+    forgotPrompt: "पहले ऊपर अपना ईमेल दर्ज करें, फिर 'पासवर्ड भूल गए' पर टैप करें।",
+    error: "कुछ गलत हो गया। अपना विवरण जाँचें और पुनः प्रयास करें।",
+  },
+  account: {
+    title: "खाता सेटिंग्स",
+    nameLabel: "प्रदर्शित नाम",
+    roleLabel: "भूमिका",
+    languageLabel: "भाषा",
+    save: "परिवर्तन सहेजें",
+    saved: "सहेजा गया।",
+    passwordTitle: "पासवर्ड बदलें",
+    newPassword: "नया पासवर्ड",
+    updatePassword: "पासवर्ड अपडेट करें",
+    passwordUpdated: "पासवर्ड अपडेट हो गया।",
+    dangerTitle: "खाता हटाएँ",
+    dangerDesc: "यह आपके खाते और आपकी सारी प्रगति को स्थायी रूप से हटा देता है। इसे पूर्ववत नहीं किया जा सकता।",
+    deleteCta: "मेरा खाता हटाएँ",
+    confirmHint: "पुष्टि के लिए DELETE टाइप करें",
+    confirmWord: "DELETE",
+    deleting: "हटाया जा रहा है…",
+    signOut: "लॉग आउट",
+    close: "बंद करें",
+  },
+  cookie: {
+    message: "आपको साइन इन रखने के लिए हम आवश्यक कुकीज़ का उपयोग करते हैं। कोई ट्रैकिंग नहीं।",
+    accept: "ठीक है",
   },
   dashboard: {
     eyebrowDate: "{total} में से मॉड्यूल {n}",
-    greeting: "सुप्रभात, उपयोगकर्ता।",
+    greetings: {
+      morning: "सुप्रभात, {name}।",
+      afternoon: "शुभ अपराह्न, {name}।",
+      evening: "शुभ संध्या, {name}।",
+    },
     sub: "इस हफ़्ते आप दो आदतें बना रहे हैं — फीडबैक और प्रत्यायोजन। आज एक छोटा कदम लय को बनाए रखता है।",
     continueCta: "आज का पाठ जारी रखें →",
     nextStepKicker: "आपका अगला बेहतरीन कदम · {n} मिनट",
@@ -689,6 +803,7 @@ const hi: Content = {
     pillTemplate: "→ {pct}% पूर्ण · {total} में से मॉड्यूल {n}",
     resume: "जारी रखें →",
     steps: ["विचार समझें", "अभ्यास और निर्णय", "एक छोटा कार्य आज़माएँ"],
+    moduleTag: "मॉड्यूल {n}",
     lockedTag: "लॉक",
     comingTitle: "आपकी यात्रा में आगे",
     phases: [
@@ -883,6 +998,10 @@ const hi: Content = {
     bestMove: "बेहतरीन कदम",
     complete: "पूर्ण करें · लय बनाए रखें 🔥",
     counter: "{n} / {total}",
+    lockedMsg: "अगला मॉड्यूल खोलने के लिए इस मॉड्यूल के प्रश्नों के उत्तर दें।",
+    retakeMsg: "आपका स्कोर {pct}% रहा। अगला मॉड्यूल खोलने के लिए कम से कम 60% चाहिए — इसे दोबारा करें।",
+    retake: "मॉड्यूल दोबारा करें",
+    goToQuestions: "प्रश्नों पर जाएँ",
   },
   language: { label: "भाषा", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
@@ -973,10 +1092,47 @@ const te: Content = {
     noAccount: "ఖాతా లేదా?",
     signUp: "సైన్ అప్",
     dummy: "ఇది ఒక డమ్మీ బటన్",
+    namePlaceholder: "మీ పేరు",
+    signupTitle: "మీ ఖాతాను సృష్టించండి",
+    signupSub: "మీ ప్రయాణాన్ని ప్రారంభించడానికి సైన్ అప్ చేయండి — మీ పురోగతి మీ ఖాతాలో సేవ్ అవుతుంది.",
+    createAccount: "ఖాతాను సృష్టించండి",
+    haveAccount: "ఇప్పటికే ఖాతా ఉందా?",
+    working: "దయచేసి వేచి ఉండండి…",
+    forgotSent: "పాస్‌వర్డ్ రీసెట్ లింక్ కోసం మీ ఇమెయిల్‌ను చూడండి.",
+    forgotPrompt: "ముందుగా పైన మీ ఇమెయిల్‌ను నమోదు చేయండి, ఆపై 'పాస్‌వర్డ్ మర్చిపోయారా' నొక్కండి.",
+    error: "ఏదో తప్పు జరిగింది. మీ వివరాలను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+  },
+  account: {
+    title: "ఖాతా సెట్టింగ్‌లు",
+    nameLabel: "ప్రదర్శన పేరు",
+    roleLabel: "పాత్ర",
+    languageLabel: "భాష",
+    save: "మార్పులను సేవ్ చేయండి",
+    saved: "సేవ్ చేయబడింది.",
+    passwordTitle: "పాస్‌వర్డ్ మార్చండి",
+    newPassword: "కొత్త పాస్‌వర్డ్",
+    updatePassword: "పాస్‌వర్డ్ నవీకరించండి",
+    passwordUpdated: "పాస్‌వర్డ్ నవీకరించబడింది.",
+    dangerTitle: "ఖాతాను తొలగించండి",
+    dangerDesc: "ఇది మీ ఖాతాను మరియు మీ మొత్తం పురోగతిని శాశ్వతంగా తొలగిస్తుంది. దీన్ని తిరిగి పొందలేరు.",
+    deleteCta: "నా ఖాతాను తొలగించండి",
+    confirmHint: "నిర్ధారించడానికి DELETE అని టైప్ చేయండి",
+    confirmWord: "DELETE",
+    deleting: "తొలగిస్తోంది…",
+    signOut: "లాగ్ అవుట్",
+    close: "మూసివేయండి",
+  },
+  cookie: {
+    message: "మిమ్మల్ని సైన్ ఇన్‌లో ఉంచడానికి మేము అవసరమైన కుకీలను ఉపయోగిస్తాము. ట్రాకింగ్ లేదు.",
+    accept: "సరే",
   },
   dashboard: {
     eyebrowDate: "{total}లో మాడ్యూల్ {n}",
-    greeting: "శుభోదయం, వినియోగదారు.",
+    greetings: {
+      morning: "శుభోదయం, {name}.",
+      afternoon: "శుభ మధ్యాహ్నం, {name}.",
+      evening: "శుభ సాయంత్రం, {name}.",
+    },
     sub: "ఈ వారం మీరు రెండు అలవాట్లను నిర్మిస్తున్నారు — ఫీడ్‌బ్యాక్ మరియు అప్పగింత. ఈరోజు ఒక చిన్న చర్య స్ట్రీక్‌ను నిలుపుతుంది.",
     continueCta: "నేటి పాఠాన్ని కొనసాగించండి →",
     nextStepKicker: "మీ తదుపరి ఉత్తమ అడుగు · {n} నిమి.",
@@ -1012,6 +1168,7 @@ const te: Content = {
     pillTemplate: "→ {pct}% పూర్తి · {total}లో మాడ్యూల్ {n}",
     resume: "కొనసాగించు →",
     steps: ["భావనను నేర్చుకోండి", "అభ్యాసం & నిర్ణయం", "ఒక చిన్న చర్య ప్రయత్నించండి"],
+    moduleTag: "మాడ్యూల్ {n}",
     lockedTag: "లాక్",
     comingTitle: "మీ ప్రయాణంలో మరిన్ని",
     phases: [
@@ -1206,6 +1363,10 @@ const te: Content = {
     bestMove: "ఉత్తమ ఎంపిక",
     complete: "పూర్తి చేయి · స్ట్రీక్ నిలుపు 🔥",
     counter: "{n} / {total}",
+    lockedMsg: "తదుపరి మాడ్యూల్‌ను అన్‌లాక్ చేయడానికి ఈ మాడ్యూల్‌లోని ప్రశ్నలకు సమాధానం ఇవ్వండి.",
+    retakeMsg: "మీ స్కోరు {pct}%. తదుపరి మాడ్యూల్ అన్‌లాక్ కావాలంటే కనీసం 60% కావాలి — మళ్లీ ప్రయత్నించండి.",
+    retake: "మాడ్యూల్ మళ్లీ చేయి",
+    goToQuestions: "ప్రశ్నలకు వెళ్లండి",
   },
   language: { label: "భాష", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };

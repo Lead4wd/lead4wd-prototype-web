@@ -1,55 +1,60 @@
+"use client";
+
 import { useState } from "react";
-import { CONTENT, DEFAULT_SCORES, SKILL_ORDER, type Content, type SkillId } from "@/data/content";
+import type { Content, SkillId } from "@/data/content";
 import { fmt } from "@/lib/format";
 import { ChevronLeft } from "@/components/icons";
+import { computeScores, type AssessmentQuestion } from "@/lib/data";
 
+// Skills check. Questions come from the DB; reports raw answers (null = skipped)
+// plus the derived per-skill scores. Used in first-run and for in-app retakes.
 export default function Assessment({
   c,
+  questions,
   onExit,
   onComplete,
 }: {
   c: Content;
-  onExit: () => void;
-  onComplete: (scores: Record<SkillId, number>) => void;
+  questions: AssessmentQuestion[];
+  onExit?: () => void;
+  onComplete: (answers: (number | null)[], scores: Record<SkillId, number>) => void;
 }) {
   const a = c.assessment;
-  const total = a.questions.length;
+  const total = questions.length;
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
-  const q = a.questions[current];
+  // No questions (e.g. content not seeded yet) — complete immediately with defaults.
+  if (total === 0) {
+    onComplete([], computeScores([], []));
+    return null;
+  }
+
+  const q = questions[current];
   const selected = answers[current];
   const isLast = current === total - 1;
 
-  // Average answers per skill → score (1–5). The skill of each question is the
-  // same across languages, so any language's question list maps identically.
-  const compute = (): Record<SkillId, number> => {
-    const sum: Record<string, { t: number; n: number }> = {};
-    SKILL_ORDER.forEach((id) => (sum[id] = { t: 0, n: 0 }));
-    CONTENT.en.assessment.questions.forEach((qq, i) => {
-      const v = answers[i];
-      if (v) {
-        sum[qq.skill].t += v;
-        sum[qq.skill].n += 1;
-      }
-    });
-    const result = {} as Record<SkillId, number>;
-    SKILL_ORDER.forEach((id) => {
-      result[id] = sum[id].n ? Math.round((sum[id].t / sum[id].n) * 10) / 10 : DEFAULT_SCORES[id];
-    });
-    return result;
+  const finish = () => {
+    const raw = questions.map((_, i) => (answers[i] ?? null));
+    const scores = computeScores(
+      questions.map((qq, i) => ({ question_idx: qq.idx, value: answers[i] ?? null })),
+      questions.map((qq) => ({ idx: qq.idx, skill: qq.skill }))
+    );
+    onComplete(raw, scores);
   };
 
   return (
     <section className="view on">
       <div className="assess">
         <div className="abar">
-          <button className="back" onClick={onExit}>
-            <ChevronLeft />
-            {a.exit}
-          </button>
+          {onExit && (
+            <button className="back" onClick={onExit}>
+              <ChevronLeft />
+              {a.exit}
+            </button>
+          )}
           <div className="progress-dots">
-            {a.questions.map((_, i) => (
+            {questions.map((_, i) => (
               <i key={i} className={answers[i] || i === current ? "on" : ""} />
             ))}
           </div>
@@ -82,18 +87,10 @@ export default function Assessment({
         </div>
 
         <div className="lesson-foot" style={{ border: "none", marginTop: 30, paddingTop: 0 }}>
-          <button
-            className="btn btn-soft"
-            disabled={current === 0}
-            onClick={() => setCurrent((i) => Math.max(0, i - 1))}
-          >
+          <button className="btn btn-soft" disabled={current === 0} onClick={() => setCurrent((i) => Math.max(0, i - 1))}>
             {a.previous}
           </button>
-          <button
-            className="btn btn-pri"
-            disabled={!selected}
-            onClick={() => (isLast ? onComplete(compute()) : setCurrent((i) => i + 1))}
-          >
+          <button className="btn btn-pri" disabled={!selected} onClick={() => (isLast ? finish() : setCurrent((i) => i + 1))}>
             {isLast ? a.finish : a.next}
           </button>
         </div>
