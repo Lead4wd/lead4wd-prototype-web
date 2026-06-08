@@ -858,6 +858,266 @@ export const MODULES: ManagerModule[] = [
       },
     ],
   },
+
+  // ---------------------------------------------------------------- Module 10
+  {
+    id: "m10",
+    skill: "feedback",
+    cluster: "Feedback, coaching & performance",
+    title: "Giving constructive feedback",
+    summary: "Make feedback specific, timely, and about behaviour — not the person.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Vague feedback helps no one",
+        body: [
+          "'Be more proactive' or 'great job' tells people nothing they can act on.",
+          "Useful feedback is specific, well-timed, and focused on behaviour and impact — not character.",
+          "Done regularly and kindly, it's the fastest way your team improves.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "A simple model: Situation · Behaviour · Impact",
+        points: [
+          { h: "Situation", p: "Anchor it: 'In this morning's client call…' — not 'you always'." },
+          { h: "Behaviour", p: "Describe what you observed, factually: 'you interrupted the client twice'." },
+          { h: "Impact", p: "Name the effect: '…and they didn't get to finish their concern'." },
+        ],
+        note: "End with a question or a request, not a verdict: 'What's your read?' or 'Next time, can we…?'",
+      },
+      {
+        kind: "dragdrop",
+        title: "Useful feedback or not?",
+        prompt: "Sort each statement into the right bucket.",
+        leftLabel: "Specific & usable",
+        rightLabel: "Vague or personal",
+        items: [
+          { text: "'In standup you cut Priya off mid-sentence; she stopped sharing.'", side: "left" },
+          { text: "'You're just not a team player.'", side: "right" },
+          { text: "'The report had 3 data errors that reached the client.'", side: "left" },
+          { text: "'Be more professional.'", side: "right" },
+          { text: "'Great work' (and nothing else).", side: "right" },
+          { text: "'Your clear agenda kept the meeting to 20 minutes — do that again.'", side: "left" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your feedback habit right now is…",
+        options: [
+          { text: "I avoid it until the annual review.", response: "Feedback ages badly. We'll make it small and frequent." },
+          { text: "I give it, but it comes out vague or emotional.", response: "The S-B-I model will make it land cleanly." },
+          { text: "I give specific feedback close to the moment.", response: "Great. We'll balance it with equally specific praise." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the recurring slip",
+        setup: "A team member has missed two internal deadlines this week. You're frustrated and about to message them.",
+        question: "What's the most constructive opener?",
+        choices: [
+          { text: "'You keep missing deadlines. This can't continue.'", feedback: "A verdict about the person. It triggers defensiveness, not problem-solving." },
+          { text: "Say nothing and silently lower your trust in them.", feedback: "Avoidance. The behaviour continues and resentment grows on both sides." },
+          { text: "'The last two internal deadlines slipped, which pushed others' work. Can we look at what's getting in the way?'", feedback: "Specific behaviour + impact + a door into the cause. That's how change starts.", best: true },
+        ],
+        followUp: "Curiosity ('what's getting in the way?') usually surfaces a fixable cause.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: give one S-B-I",
+        intro: "Pick one recent moment — positive or developmental — and say it like this:",
+        steps: [
+          "Situation: 'In ___…'",
+          "Behaviour: 'I noticed you ___.'",
+          "Impact: '…and the effect was ___.' Then ask one question.",
+        ],
+        note: "Aim for more specific praise than criticism. People repeat what gets noticed.",
+      },
+      {
+        kind: "reflect",
+        title: "How did the feedback land?",
+        scaleQuestion: "How open was the person to your feedback?",
+        scaleOptions: ["Defensive", "Neutral", "Receptive", "Grateful"],
+        textPrompt: "What made it easier or harder to say than you expected?",
+        placeholder: "It was…",
+        closing: "Specific, kind, frequent feedback is a gift. Each rep makes the next one easier.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 11
+  {
+    id: "m11",
+    skill: "feedback",
+    cluster: "Feedback, coaching & performance",
+    title: "Coaching conversations & career growth",
+    summary: "Grow people by asking, not telling — and make development concrete.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "The best managers grow people, not just output",
+        body: [
+          "Telling gives a fast answer once. Coaching builds someone who can find the answer every time.",
+          "You don't need to be a certified coach — just curious, and willing to let people think.",
+          "Small coaching moments, repeated, compound into real growth.",
+        ],
+      },
+      {
+        kind: "compare",
+        title: "Telling vs. coaching",
+        leftLabel: "Telling",
+        rightLabel: "Coaching",
+        left: ["'Here's exactly what to do.'", "I own the thinking.", "Fast now, dependent later."],
+        right: ["'What options do you see?'", "They own the thinking.", "Slower now, capable later."],
+        highlight: "Coach when there's time to grow; tell when it's truly urgent. Most managers tell far too often.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Coaching question or disguised advice?",
+        prompt: "Sort each line into the right bucket.",
+        leftLabel: "Real coaching question",
+        rightLabel: "Advice in disguise",
+        items: [
+          { text: "'What outcome do you actually want here?'", side: "left" },
+          { text: "'Don't you think you should just escalate it?'", side: "right" },
+          { text: "'What have you already tried?'", side: "left" },
+          { text: "'Why wouldn't you just do what I did last time?'", side: "right" },
+          { text: "'What's one option you haven't considered yet?'", side: "left" },
+          { text: "'Wouldn't it be smarter to do it my way?'", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "In growth conversations, you mostly…",
+        options: [
+          { text: "Jump straight to advice — it's quicker.", response: "Quick, but they stay dependent. We'll add a few questions first." },
+          { text: "Ask a bit, then take over with my solution.", response: "Close — hold the space a little longer before advising." },
+          { text: "Ask questions and let them reach their own plan.", response: "Strong coaching instinct. We'll make development concrete too." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: 'I'm stuck on this'",
+        setup: "A team member comes to you stuck on a problem. You can see a reasonable answer in about five seconds.",
+        question: "What's the most developmental response?",
+        choices: [
+          { text: "Give them your answer immediately so they can move on.", feedback: "Efficient today, but they'll be back next time with the next problem." },
+          { text: "'Figure it out, that's your job.'", feedback: "Abandonment, not coaching. They feel unsupported and may disengage." },
+          { text: "'What have you tried, and what feels like the real blocker?' — then guide from there.", feedback: "You build their problem-solving while staying available. Coach first, tell if needed.", best: true },
+        ],
+        followUp: "If they're truly stuck after a couple of questions, then offer a suggestion — as one option, not the answer.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: one growth question",
+        intro: "In your next 1:1, spend five minutes on growth, not tasks:",
+        steps: [
+          "Ask: 'What's one skill you'd like to get better at this quarter?'",
+          "Ask: 'What's one small step you could take this week?'",
+          "Agree to check in on it — written down somewhere you'll both see.",
+        ],
+        note: "Development that isn't written down rarely happens.",
+      },
+      {
+        kind: "reflect",
+        title: "Did coaching shift the conversation?",
+        scaleQuestion: "How much of the thinking did they do (vs. you)?",
+        scaleOptions: ["I did it all", "Mostly me", "Shared", "Mostly them"],
+        textPrompt: "What did they come up with that you wouldn't have suggested?",
+        placeholder: "They thought of…",
+        closing: "Every question you ask instead of answering is an investment in someone who needs you less over time.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 12
+  {
+    id: "m12",
+    skill: "feedback",
+    cluster: "Feedback, coaching & performance",
+    title: "Performance management basics",
+    summary: "Set goals, track honestly, and address slipping performance early.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Performance problems grow in silence",
+        body: [
+          "Most managers wait far too long to address under-performance — hoping it fixes itself.",
+          "It rarely does. Early, honest, specific conversations are kinder than a sudden crisis later.",
+          "Good performance management is mostly clarity + regular check-ins, not annual paperwork.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "The cycle: agree · track · address",
+        points: [
+          { h: "Agree goals", p: "A few clear, outcome-based goals everyone understands — not a vague wishlist." },
+          { h: "Track honestly", p: "Check progress regularly, with facts, not vibes. No surprises at review time." },
+          { h: "Address early", p: "When something slips, name it quickly and specifically, and agree a plan." },
+        ],
+        note: "Nobody should be shocked by their performance review. If they are, the tracking failed.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Strong goal or weak goal?",
+        prompt: "Sort each goal into the right bucket.",
+        leftLabel: "Clear, trackable goal",
+        rightLabel: "Vague goal",
+        items: [
+          { text: "'Cut average ticket response time to under 4 hours this quarter.'", side: "left" },
+          { text: "'Be better at customer service.'", side: "right" },
+          { text: "'Ship the onboarding flow by end of March, < 2% error rate.'", side: "left" },
+          { text: "'Work harder on quality.'", side: "right" },
+          { text: "'Run all 6 client reviews this quarter with a written summary each.'", side: "left" },
+          { text: "'Improve, generally.'", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "When someone's performance slips, you…",
+        options: [
+          { text: "Wait and hope it improves on its own.", response: "The most common — and most costly — choice. We'll act earlier." },
+          { text: "Get frustrated, then vent it all at once later.", response: "Bottled-up feedback lands as an ambush. We'll keep it timely." },
+          { text: "Name it early, specifically, and agree next steps.", response: "Exactly right. We'll make sure it's documented and fair." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the slow slide",
+        setup: "A normally-solid team member's work has dipped for three weeks — later, sloppier. It's noticeable but not a disaster yet.",
+        question: "What do you do?",
+        choices: [
+          { text: "Nothing yet — wait until it's clearly a pattern at review time.", feedback: "By review it'll be entrenched and they'll feel blindsided. Earlier is kinder." },
+          { text: "Quietly redistribute their work to others.", feedback: "You hide the problem and overload the team. The person never gets a chance to recover." },
+          { text: "Book a supportive 1:1: name what you've seen, ask what's going on, agree a plan.", feedback: "Early, specific, and curious. Often there's a fixable cause — and they feel cared for.", best: true },
+        ],
+        followUp: "Address the dip while it's still a conversation, not yet a crisis.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: a no-surprises check",
+        intro: "Pick one team member and do a quick performance pulse:",
+        steps: [
+          "List their 2–3 current goals — are they still clear and right?",
+          "Note one thing going well and one thing to watch, with a specific example.",
+          "Raise the 'watch' item in your next 1:1, early and kindly.",
+        ],
+        note: "Regular small check-ins make the big reviews effortless and fair.",
+      },
+      {
+        kind: "reflect",
+        title: "How did addressing it early go?",
+        scaleQuestion: "How early did you raise the issue compared to your usual?",
+        scaleOptions: ["Same as always (late)", "A bit earlier", "Much earlier", "Right away"],
+        textPrompt: "What did you learn about the cause once you actually asked?",
+        placeholder: "I found out…",
+        closing: "Clear goals plus early, honest conversations make performance management fair — and far less scary for everyone.",
+      },
+    ],
+  },
 ];
 
 // Helpers -------------------------------------------------------------------
@@ -868,7 +1128,6 @@ export function getModule(id: string | null | undefined): ManagerModule | undefi
 
 // Clusters not yet authored — shown locked in the journey.
 export const LOCKED_CLUSTERS: string[] = [
-  "Feedback, coaching & performance",
   "Conflict, difficult people & well-being",
   "Team culture & collaboration",
   "Growing into a broader leader",
