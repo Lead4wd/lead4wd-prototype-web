@@ -597,6 +597,267 @@ export const MODULES: ManagerModule[] = [
       },
     ],
   },
+
+  // ---------------------------------------------------------------- Module 7
+  {
+    id: "m7",
+    skill: "communication",
+    cluster: "Expectations, delegation & time",
+    title: "Setting expectations & direction",
+    summary: "Define what 'good' looks like — and align it with the bigger picture.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "People can't meet expectations they can't see",
+        body: [
+          "Most underperformance isn't laziness — it's unclear expectations.",
+          "If your team is guessing what 'good' looks like, they'll aim at the wrong target and you'll both be frustrated.",
+          "Your job is to make the target obvious, and tie it to why it matters.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Clear direction = 3 layers",
+        points: [
+          { h: "Role clarity", p: "What this person owns, decides, and is accountable for — not just today's tasks." },
+          { h: "'Good' defined", p: "A concrete picture of done: quality, format, and standard, not a vague 'do your best'." },
+          { h: "Line of sight", p: "How their work connects to the team's goal and the business — so it has meaning." },
+        ],
+        note: "Expectations set once and never revisited quietly drift. Repeat them more than feels necessary.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Clear expectation or vague hope?",
+        prompt: "Sort each statement into the right bucket.",
+        leftLabel: "Clear expectation",
+        rightLabel: "Vague hope",
+        items: [
+          { text: "'Own the weekly report; it's accurate and out by Monday 10am.'", side: "left" },
+          { text: "'Just keep an eye on quality.'", side: "right" },
+          { text: "'You decide on refunds under ₹5,000 without checking with me.'", side: "left" },
+          { text: "'Be more proactive.'", side: "right" },
+          { text: "'For this client, success = renewed contract and a reference call.'", side: "left" },
+          { text: "'Handle the project well.'", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "When you hand over responsibility, you usually…",
+        prompt: "Pick the closest.",
+        options: [
+          { text: "Describe the task but rarely the decision rights.", response: "Common gap. We'll make 'what you can decide' explicit." },
+          { text: "Explain the 'what' but skip the 'why'.", response: "Adding line-of-sight turns compliance into ownership." },
+          { text: "Set a clear outcome, decision rights, and the why.", response: "Strong. We'll keep this consistent across your team." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the drifting project",
+        setup: "Two weeks in, a project is heading the wrong way. When you ask, your team member says: 'I thought this is what you wanted.'",
+        question: "What's the most useful response?",
+        choices: [
+          { text: "'I shouldn't have to spell out every detail.'", feedback: "Blames the person for an expectations gap you co-own. They'll hide drift next time." },
+          { text: "Quietly take the work back and fix it yourself.", feedback: "Solves today, but teaches them that unclear = you rescue. Nothing improves." },
+          { text: "'That's on me — let me re-define what good looks like, then you tell me the plan.'", feedback: "Owns the clarity gap and resets expectations without blame. That builds trust.", best: true },
+        ],
+        followUp: "When work drifts, check the expectation before you judge the effort.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: write one 'definition of done'",
+        intro: "Pick one ongoing responsibility a team member holds. Write down:",
+        steps: [
+          "Outcome: 'This is what good looks like…'",
+          "Decision rights: 'You can decide ___ without me; check with me on ___.'",
+          "Why it matters: 'This connects to ___.'",
+        ],
+        note: "Share it, then ask them to play it back in their own words.",
+      },
+      {
+        kind: "reflect",
+        title: "Did clearer direction change anything?",
+        scaleQuestion: "How aligned did you and your team member feel afterwards?",
+        scaleOptions: ["Still misaligned", "A little clearer", "Mostly aligned", "Fully aligned"],
+        textPrompt: "What expectation had you assumed was obvious but wasn't?",
+        placeholder: "I assumed…",
+        closing: "Clarity up front saves a dozen corrections later. It's the cheapest investment you'll make.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 8
+  {
+    id: "m8",
+    skill: "delegation",
+    cluster: "Expectations, delegation & time",
+    title: "Delegation without micromanaging",
+    summary: "Hand over outcomes, not just tasks — and resist taking them back.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "If everything needs you, nothing can scale",
+        body: [
+          "New managers often delegate tasks but keep all the thinking — so work still bottlenecks on them.",
+          "Real delegation hands over the outcome and the decisions, then supports without hovering.",
+          "Done well, it grows your people and frees your time. Done badly, it's just dumping or micromanaging.",
+        ],
+      },
+      {
+        kind: "compare",
+        title: "Dumping vs. micromanaging vs. delegating",
+        leftLabel: "What it's not",
+        rightLabel: "Real delegation",
+        left: ["Throw the task over the wall and disappear.", "Assign it, then check every step and redo it.", "Keep all decisions for yourself."],
+        right: ["Agree the outcome and why it matters.", "Set check-in points, then let them work.", "Hand over the decisions that fit their level."],
+        highlight: "Delegation = clear outcome + the right level of decision rights + agreed follow-up.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Delegate it or keep it?",
+        prompt: "For a growing team member, sort what you'd hand over vs. hold.",
+        leftLabel: "Good to delegate",
+        rightLabel: "Keep (for now)",
+        items: [
+          { text: "Drafting the monthly status report.", side: "left" },
+          { text: "Running a recurring stakeholder update.", side: "left" },
+          { text: "A confidential decision about someone's pay.", side: "right" },
+          { text: "Choosing the vendor from a shortlist you approved.", side: "left" },
+          { text: "Handling a serious complaint about a teammate.", side: "right" },
+          { text: "Owning the team's onboarding checklist.", side: "left" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your delegation default is…",
+        options: [
+          { text: "I hold on to most things — faster if I just do it.", response: "Short-term true, long-term costly. We'll start handing over safely." },
+          { text: "I delegate, but then hover and correct constantly.", response: "That's micromanaging in disguise. We'll add trust + check-ins instead." },
+          { text: "I delegate outcomes and check in at agreed points.", response: "Great. We'll sharpen how you match tasks to people." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: it's not how you'd do it",
+        setup: "You delegated a client deck. It's good and on-message — but structured differently from how you'd do it. The meeting is tomorrow.",
+        question: "What do you do?",
+        choices: [
+          { text: "Rework it overnight into your preferred structure.", feedback: "You signal that their way is never enough. They stop trying — and you're exhausted." },
+          { text: "Send a long list of style changes to 'fix' it.", feedback: "Micromanaging the form, not the outcome. It works but ownership evaporates." },
+          { text: "Check it meets the goal, give one or two high-impact notes, and let the rest stand.", feedback: "Protects quality and ownership. 'Different from mine' isn't 'wrong'.", best: true },
+        ],
+        followUp: "Ask: does this actually affect the outcome, or just my preference?",
+      },
+      {
+        kind: "action",
+        title: "Today's action: delegate one outcome",
+        intro: "Pick one thing only you currently do. Hand it over like this:",
+        steps: [
+          "Name the outcome: 'What I need is ___ by ___.'",
+          "Set decision rights: 'You can decide ___; loop me in on ___.'",
+          "Agree one check-in — then don't hover in between.",
+        ],
+        note: "Expect it to be ~80% of your version at first. That's a win, not a problem.",
+      },
+      {
+        kind: "reflect",
+        title: "How did letting go feel?",
+        scaleQuestion: "How hard was it to not step in before the check-in?",
+        scaleOptions: ["Very hard", "Hard", "Okay", "Easy"],
+        textPrompt: "What did they do well that you might not have done the same way?",
+        placeholder: "They…",
+        closing: "Every outcome you delegate well multiplies your team's capacity — and your own time.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 9
+  {
+    id: "m9",
+    skill: "delegation",
+    cluster: "Expectations, delegation & time",
+    title: "Time & priority management for managers",
+    summary: "Shift your calendar from doing the work to enabling it.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Your calendar is your real job description",
+        body: [
+          "As an IC, a full calendar of 'doing' felt productive. As a manager, that same calendar means your team is waiting on you.",
+          "Manager time goes to 1:1s, reviews, unblocking, and thinking — work that multiplies others.",
+          "If you don't protect that time, urgent tasks will eat all of it.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three priority moves",
+        points: [
+          { h: "Important over urgent", p: "Urgent shouts; important whispers. Schedule the important (1:1s, planning) before the day fills up." },
+          { h: "Protect manager blocks", p: "Block time for coaching, review, and thinking — and treat it as unmovable as a client meeting." },
+          { h: "Decide what not to do", p: "Saying yes to everything means doing everything yourself. Prioritising is mostly choosing what to drop." },
+        ],
+        note: "A calendar full of others' urgencies is a sign of weak priorities, not hard work.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Manager time or doer time?",
+        prompt: "Sort how a manager should mostly spend their week.",
+        leftLabel: "Multiplier time",
+        rightLabel: "Doer time (delegate/limit)",
+        items: [
+          { text: "Weekly 1:1s with each team member.", side: "left" },
+          { text: "Personally formatting every report.", side: "right" },
+          { text: "30 minutes of weekly planning + review.", side: "left" },
+          { text: "Answering every Slack ping the second it arrives.", side: "right" },
+          { text: "Unblocking a stuck team member.", side: "left" },
+          { text: "Redoing tasks you already delegated.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Right now, most of your week goes to…",
+        options: [
+          { text: "Firefighting — reacting to whatever's loudest.", response: "Very common in year one. We'll carve out protected blocks." },
+          { text: "Doing IC work, with managing squeezed into gaps.", response: "Your team needs your manager time. We'll start reclaiming it." },
+          { text: "A mix, with some protected coaching/planning time.", response: "Good base. We'll make the important time non-negotiable." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the calendar collision",
+        setup: "Your weekly 1:1 with a team member clashes with an 'urgent' task your boss dropped on you 20 minutes ago.",
+        question: "What's the strongest move?",
+        choices: [
+          { text: "Cancel the 1:1 — the urgent task wins, again.", feedback: "Understandable once. As a habit, it tells your team they come last." },
+          { text: "Do both badly — half-listen in the 1:1 while working.", feedback: "Neither gets your real attention; your team member feels it." },
+          { text: "Keep the 1:1, and ask your boss what can move or who else can help.", feedback: "Protects the multiplier time and renegotiates the 'urgent'. Most urgencies have flex.", best: true },
+        ],
+        followUp: "Not everything labelled urgent actually is. Ask before you sacrifice your priorities.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: protect one block",
+        intro: "Open your calendar and do this now:",
+        steps: [
+          "Block 30 minutes this week for planning/review — name it and make it recurring.",
+          "Pick one recurring 'doer' task to delegate or drop.",
+          "Turn off notifications for one focus hour and tell your team why.",
+        ],
+        note: "You're shifting from reacting to your day to designing it.",
+      },
+      {
+        kind: "reflect",
+        title: "Did protecting time change your week?",
+        scaleQuestion: "How well did you hold your protected block?",
+        scaleOptions: ["Lost it entirely", "Partly held it", "Mostly held it", "Fully held it"],
+        textPrompt: "What did you choose NOT to do this week, and what happened?",
+        placeholder: "I stopped…",
+        closing: "Managers who protect their priorities lead calmer, more capable teams. Your calendar is a leadership tool.",
+      },
+    ],
+  },
 ];
 
 // Helpers -------------------------------------------------------------------
@@ -607,7 +868,6 @@ export function getModule(id: string | null | undefined): ManagerModule | undefi
 
 // Clusters not yet authored — shown locked in the journey.
 export const LOCKED_CLUSTERS: string[] = [
-  "Expectations, delegation & time",
   "Feedback, coaching & performance",
   "Conflict, difficult people & well-being",
   "Team culture & collaboration",
