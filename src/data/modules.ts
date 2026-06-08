@@ -1641,6 +1641,267 @@ export const MODULES: ManagerModule[] = [
       },
     ],
   },
+
+  // ---------------------------------------------------------------- Module 19
+  {
+    id: "m19",
+    skill: "communication",
+    cluster: "Growing into a broader leader",
+    title: "Stakeholder management & influence",
+    summary: "Lead beyond your team — manage up and influence without authority.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Your impact now depends on people you don't manage",
+        body: [
+          "As you grow, more of your results rely on peers, other teams, and your own boss — people you can't simply direct.",
+          "Influence comes from trust, clarity, and understanding what others care about, not from your title.",
+          "Managing up well isn't politics — it's making sure your team's work is understood and supported.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three influence moves",
+        points: [
+          { h: "Understand their goals", p: "Know what each stakeholder is measured on and worried about. Frame your ask in their terms." },
+          { h: "Manage up proactively", p: "Keep your boss informed — wins, risks, and what you need — before they have to ask." },
+          { h: "Build trust before you need it", p: "Reliable follow-through and generosity now create goodwill you can draw on later." },
+        ],
+        note: "Influence is mostly relationship and clarity, banked in advance.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Builds influence or burns it?",
+        prompt: "Sort each behaviour.",
+        leftLabel: "Builds influence",
+        rightLabel: "Burns influence",
+        items: [
+          { text: "Framing your request around the other team's goals.", side: "left" },
+          { text: "Only reaching out when you need a favour.", side: "right" },
+          { text: "Giving your boss early warning of a risk.", side: "left" },
+          { text: "Surprising your boss with bad news in public.", side: "right" },
+          { text: "Following through reliably on small commitments.", side: "left" },
+          { text: "Over-promising to look good, then under-delivering.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your relationship with your manager is…",
+        options: [
+          { text: "I mostly wait to be asked, then report.", response: "Reactive. We'll make your updates proactive and useful." },
+          { text: "I update sometimes, but inconsistently.", response: "A simple rhythm will make you far easier to support." },
+          { text: "I keep them ahead of wins, risks, and needs.", response: "Strong managing-up habit. We'll extend it to peers." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: you need another team's help",
+        setup: "Your project needs work from a peer's team that's already stretched. You have no authority over them.",
+        question: "What's the most effective approach?",
+        choices: [
+          { text: "Escalate to your boss to force them to prioritise it.", feedback: "Sometimes necessary, but starting here burns goodwill and makes you hard to work with." },
+          { text: "Send a demanding message about how urgent it is for you.", feedback: "Framing it around your urgency, not their goals, invites resistance." },
+          { text: "Talk to the peer: understand their pressures, frame the ask around shared goals, offer something in return.", feedback: "You build a working relationship and a win-win. Influence over force.", best: true },
+        ],
+        followUp: "Escalate only after a genuine attempt to align — and bring your boss a clear, fair summary if you do.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: one proactive update + one bridge",
+        intro: "This week, do both:",
+        steps: [
+          "Send your manager a short proactive update: a win, a risk, and one thing you need.",
+          "Reach out to one peer/stakeholder when you DON'T need anything — just to connect or help.",
+          "Note what each of them actually cares about most.",
+        ],
+        note: "You're banking trust and understanding before you need to spend them.",
+      },
+      {
+        kind: "reflect",
+        title: "How did managing up and across feel?",
+        scaleQuestion: "How well did your proactive update land with your manager?",
+        scaleOptions: ["No real effect", "Mild", "Appreciated", "Clearly valued"],
+        textPrompt: "What did you learn about what a key stakeholder really cares about?",
+        placeholder: "They care most about…",
+        closing: "The broader you lead, the more influence beats authority. Invest in trust before you need it.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 20
+  {
+    id: "m20",
+    skill: "communication",
+    cluster: "Growing into a broader leader",
+    title: "Leading change (small-scale)",
+    summary: "Help your team through change — communicate the why and handle resistance.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "People don't resist change — they resist loss and uncertainty",
+        body: [
+          "Even small changes — a new tool, process, or priority — can unsettle a team if handled carelessly.",
+          "Resistance usually isn't stubbornness; it's unanswered questions: 'Why? What does this mean for me?'",
+          "Your job is to give the why, acknowledge the loss, and walk people through the transition.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Leading a change in 3 steps",
+        points: [
+          { h: "Explain the why", p: "People accept change they understand. Lead with the reason and the benefit, not just the what." },
+          { h: "Acknowledge the loss", p: "Name what's changing and what people might miss. Dismissing it breeds quiet resistance." },
+          { h: "Make the path clear", p: "Spell out the first steps, the support available, and what stays the same." },
+        ],
+        note: "Communicate more than feels necessary, and repeat it. People absorb change slowly.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Eases change or fuels resistance?",
+        prompt: "Sort each manager move.",
+        leftLabel: "Eases change",
+        rightLabel: "Fuels resistance",
+        items: [
+          { text: "Explaining clearly why the change is happening.", side: "left" },
+          { text: "'We're doing this because I said so.'", side: "right" },
+          { text: "Acknowledging what people will miss about the old way.", side: "left" },
+          { text: "Springing the change with no warning.", side: "right" },
+          { text: "Inviting questions and concerns openly.", side: "left" },
+          { text: "Treating any concern as 'being negative'.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "When you roll out a change, you usually…",
+        options: [
+          { text: "Announce the what and expect people to adapt.", response: "The why is missing — that's where resistance comes from. We'll add it." },
+          { text: "Explain the why, but skip people's concerns.", response: "Close — acknowledging the loss will smooth the path." },
+          { text: "Give the why, hear concerns, and guide the transition.", response: "Exactly how good change leaders work." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the new process nobody wanted",
+        setup: "Leadership mandates a new tool your team must adopt. You can already feel the eye-rolls and grumbling starting.",
+        question: "What's your best move as their manager?",
+        choices: [
+          { text: "Pass it down flatly: 'New tool from Monday, no choice.'", feedback: "You side-step your role. The team feels unheard and resistance hardens." },
+          { text: "Quietly agree it's pointless and let adoption slide.", feedback: "Undermining it sets the team up to fail and you to look out of step." },
+          { text: "Explain the why honestly, acknowledge the hassle, and agree how you'll ease the switch together.", feedback: "You bridge leadership and team, validating feelings while moving forward.", best: true },
+        ],
+        followUp: "You can be honest about the downsides and still lead the change well.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: frame one change well",
+        intro: "Pick a current or upcoming change. Prepare to tell your team:",
+        steps: [
+          "The why: 'This is happening because…'",
+          "The honest loss: 'What's harder / changing is…'",
+          "The path: 'Here's the first step and the support you'll have.'",
+        ],
+        note: "Then invite their questions — and actually listen to them.",
+      },
+      {
+        kind: "reflect",
+        title: "How did your team take the change?",
+        scaleQuestion: "How much resistance did you meet after framing it well?",
+        scaleOptions: ["Heavy", "Some", "A little", "Smooth"],
+        textPrompt: "What concern surfaced once you invited questions?",
+        placeholder: "They worried about…",
+        closing: "Change is constant. Leading it with honesty and empathy is one of the most valued skills you can build.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 21
+  {
+    id: "m21",
+    skill: "feedback",
+    cluster: "Growing into a broader leader",
+    title: "Continuous learning & self-reflection",
+    summary: "Build the habit of improving yourself the way you grow your team.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "The best managers keep learning on purpose",
+        body: [
+          "Management isn't a destination you arrive at — it's a skill you keep refining.",
+          "Without deliberate reflection, you repeat the same mistakes and plateau.",
+          "A simple habit of seeking feedback and reviewing your own actions compounds into real growth.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three habits of growing leaders",
+        points: [
+          { h: "Reflect regularly", p: "A few honest minutes weekly: what went well, what didn't, what I'll try next." },
+          { h: "Seek feedback on yourself", p: "Ask your team and peers how you're doing as a manager — and make it safe to be honest." },
+          { h: "Use data, not just gut", p: "Notice patterns in your team's results, engagement, and turnover to guide what you improve." },
+        ],
+        note: "Model the growth mindset you want from your team — they'll follow what you do, not what you say.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Growth habit or growth blocker?",
+        prompt: "Sort each behaviour.",
+        leftLabel: "Helps you grow",
+        rightLabel: "Keeps you stuck",
+        items: [
+          { text: "Asking your team for honest feedback on your leadership.", side: "left" },
+          { text: "Assuming you've 'figured out' managing.", side: "right" },
+          { text: "A short weekly reflection on what to do differently.", side: "left" },
+          { text: "Treating every mistake as someone else's fault.", side: "right" },
+          { text: "Picking one skill to deliberately practise this month.", side: "left" },
+          { text: "Avoiding feedback because it might sting.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your own learning habit is…",
+        options: [
+          { text: "I rarely stop to reflect — too busy.", response: "Even five minutes weekly changes the trajectory. We'll start small." },
+          { text: "I reflect sometimes, but never ask for feedback.", response: "Outside input is the missing piece. We'll make it safe to get it." },
+          { text: "I reflect and actively seek feedback on myself.", response: "Excellent. We'll turn insights into deliberate practice." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the surprising feedback",
+        setup: "In a skip-level or survey, you learn your team finds you less approachable than you believed. It stings.",
+        question: "What's the growth response?",
+        choices: [
+          { text: "Dismiss it — they just don't see how busy you are.", feedback: "Defensiveness ends learning. The gap stays and trust erodes further." },
+          { text: "Hunt for who said it and feel resentful.", feedback: "You make it unsafe to be honest, guaranteeing you won't get the truth again." },
+          { text: "Sit with it, thank them for the honesty, and pick one concrete change to make.", feedback: "You model exactly the growth mindset you want — and people notice you act on feedback.", best: true },
+        ],
+        followUp: "Feedback that stings is usually the most useful. Reward it so it keeps coming.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: start a reflection loop",
+        intro: "Set up your own learning habit this week:",
+        steps: [
+          "Block 5 minutes on Friday: 'What worked / what didn't / what I'll try.'",
+          "Ask one person you trust: 'What's one thing I could do better as a manager?'",
+          "Pick one skill from this journey to deliberately practise next.",
+        ],
+        note: "Write it down. A reflection habit you can see is one you'll keep.",
+      },
+      {
+        kind: "reflect",
+        title: "What did reflecting reveal?",
+        scaleQuestion: "How honest were you able to be with yourself?",
+        scaleOptions: ["Surface only", "Somewhat", "Pretty honest", "Very honest"],
+        textPrompt: "What's the one thing you'll deliberately work on next?",
+        placeholder: "I'll work on…",
+        closing: "You've reached the end of the journey — but a great manager never stops learning. Keep the loop going.",
+      },
+    ],
+  },
 ];
 
 // Helpers -------------------------------------------------------------------
@@ -1649,7 +1910,6 @@ export function getModule(id: string | null | undefined): ManagerModule | undefi
   return MODULES.find((m) => m.id === id);
 }
 
-// Clusters not yet authored — shown locked in the journey.
-export const LOCKED_CLUSTERS: string[] = [
-  "Growing into a broader leader",
-];
+// All curriculum clusters are now authored. Add names here to show future
+// (unauthored) clusters as locked in the journey.
+export const LOCKED_CLUSTERS: string[] = [];
