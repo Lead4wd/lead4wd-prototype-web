@@ -1380,6 +1380,267 @@ export const MODULES: ManagerModule[] = [
       },
     ],
   },
+
+  // ---------------------------------------------------------------- Module 16
+  {
+    id: "m16",
+    skill: "communication",
+    cluster: "Team culture & collaboration",
+    title: "Building a high-trust, high-performance team",
+    summary: "Set the norms and rituals that make a group into a real team.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Culture is just the behaviour you allow and reward",
+        body: [
+          "A team isn't built by a values poster — it's built by the small behaviours you model, reward, and tolerate.",
+          "High-trust teams agree how they work together: how they decide, disagree, and hold each other accountable.",
+          "Make the unspoken rules explicit, and performance follows trust.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three foundations of a strong team",
+        points: [
+          { h: "Working agreements", p: "Shared norms: response times, meeting etiquette, how decisions get made and communicated." },
+          { h: "Mutual accountability", p: "People hold each other to commitments — not just you policing everyone." },
+          { h: "Collaboration rituals", p: "Regular rhythms (standups, retros, demos) that keep the team aligned and learning." },
+        ],
+        note: "Co-create the norms with the team. Rules you impose alone rarely stick.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Builds team trust or erodes it?",
+        prompt: "Sort each manager behaviour.",
+        leftLabel: "Builds trust",
+        rightLabel: "Erodes trust",
+        items: [
+          { text: "Following through on commitments you make to the team.", side: "left" },
+          { text: "Quietly changing decisions without telling anyone.", side: "right" },
+          { text: "Running a blameless retro after a mistake.", side: "left" },
+          { text: "Having favourites and showing it.", side: "right" },
+          { text: "Co-creating team working agreements together.", side: "left" },
+          { text: "Taking credit for the team's wins.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your team's 'how we work' is…",
+        options: [
+          { text: "Unspoken — everyone just guesses the norms.", response: "Hidden rules cause friction. We'll make a few explicit." },
+          { text: "Set by me, top-down.", response: "Better than nothing — co-creating them will boost buy-in." },
+          { text: "Agreed together and revisited.", response: "Strong base. We'll keep the rituals alive and useful." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the broken commitment",
+        setup: "A team member repeatedly misses shared deadlines, and it's affecting everyone. The team is watching to see what you'll do.",
+        question: "What builds the strongest culture?",
+        choices: [
+          { text: "Ignore it to avoid awkwardness.", feedback: "The team learns commitments are optional. Your best people quietly disengage." },
+          { text: "Call them out harshly in the team channel.", feedback: "Public shaming breaks safety; people start hiding problems instead of fixing them." },
+          { text: "Address it directly in private, and reinforce the shared agreement with the team.", feedback: "You protect both the person and the standard. Accountability with respect builds trust.", best: true },
+        ],
+        followUp: "What you tolerate becomes your culture. Address gaps against agreements you all made.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: draft one working agreement",
+        intro: "With your team (or as a proposal to them), define one norm:",
+        steps: [
+          "Pick a friction point (e.g. meeting overload, slow replies, unclear decisions).",
+          "Draft one simple agreement to fix it.",
+          "Ask the team to refine and commit to it together.",
+        ],
+        note: "One agreed, followed norm is worth more than a long values document.",
+      },
+      {
+        kind: "reflect",
+        title: "Did naming the norm help?",
+        scaleQuestion: "How did the team respond to co-creating an agreement?",
+        scaleOptions: ["Indifferent", "Mild interest", "Engaged", "Strong buy-in"],
+        textPrompt: "What unspoken rule turned out to be causing friction?",
+        placeholder: "The hidden rule was…",
+        closing: "Great teams aren't lucky — they're built, one explicit agreement and kept commitment at a time.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 17
+  {
+    id: "m17",
+    skill: "communication",
+    cluster: "Team culture & collaboration",
+    title: "Leading remote & hybrid teams",
+    summary: "Create structure, equity, and connection when you're not in the same room.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Remote doesn't fail from distance — it fails from poor structure",
+        body: [
+          "When the team isn't together, the casual coordination that happened naturally has to be designed.",
+          "Without it, remote people feel invisible and hybrid teams split into two tiers.",
+          "Good remote leadership = clear rhythms, deliberate async, and equal visibility for everyone.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three remote/hybrid essentials",
+        points: [
+          { h: "Predictable rhythms", p: "Regular check-ins and updates so no one feels out of the loop or forgotten." },
+          { h: "Async by default", p: "Write decisions and context down so people in any timezone can stay aligned." },
+          { h: "Equity of presence", p: "In hybrid meetings, make sure remote voices are seen and heard as much as in-room ones." },
+        ],
+        note: "Over-communicate context. In remote work, silence reads as a problem.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Helps remote/hybrid or hurts it?",
+        prompt: "Sort each practice.",
+        leftLabel: "Helps",
+        rightLabel: "Hurts",
+        items: [
+          { text: "Writing key decisions in a shared doc everyone can see.", side: "left" },
+          { text: "Making big calls in hallway chats only in-office people hear.", side: "right" },
+          { text: "A predictable weekly written team update.", side: "left" },
+          { text: "Letting remote folks struggle to get a word in on calls.", side: "right" },
+          { text: "Clear norms on response times and 'offline' hours.", side: "left" },
+          { text: "Expecting instant replies across timezones.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "In your remote/hybrid setup…",
+        options: [
+          { text: "In-office people clearly get more of my attention.", response: "A common trap. We'll level the playing field." },
+          { text: "It's okay, but a lot lives in my head or DMs.", response: "Writing more down will unlock the whole team." },
+          { text: "We have clear rhythms and async habits.", response: "Strong. We'll keep tightening equity of presence." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the two-tier meeting",
+        setup: "In a hybrid meeting, the in-room group dominates the discussion and the remote folks have gone quiet. A decision is forming.",
+        question: "What's the best move?",
+        choices: [
+          { text: "Push the decision through — the room agrees, after all.", feedback: "You've effectively excluded half the team. They'll feel like second-class members." },
+          { text: "Note it and move on; remote people can catch up later.", feedback: "'Catch up later' is how remote staff slowly disengage and lose influence." },
+          { text: "Pause and bring remote voices in by name before deciding — or take it async.", feedback: "You restore equity and get the full team's input. Better decisions, fairer team.", best: true },
+        ],
+        followUp: "Default to 'remote-first' habits even in hybrid — they make everything fairer.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: one equity upgrade",
+        intro: "Pick one of these to do this week:",
+        steps: [
+          "Move one key decision into a written doc everyone can see and comment on.",
+          "In your next hybrid meeting, invite each remote person by name.",
+          "Write a short, predictable weekly team update.",
+        ],
+        note: "Small structure beats good intentions when the team is spread out.",
+      },
+      {
+        kind: "reflect",
+        title: "Did the structure change inclusion?",
+        scaleQuestion: "How included did your remote team members seem?",
+        scaleOptions: ["Left out", "Somewhat", "Mostly included", "Fully included"],
+        textPrompt: "What did the quieter / remote members add once you made space?",
+        placeholder: "They contributed…",
+        closing: "Distance is only a problem without structure. Design the connection and your spread-out team thrives.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 18
+  {
+    id: "m18",
+    skill: "conflict",
+    cluster: "Team culture & collaboration",
+    title: "Diversity, inclusion & fairness in daily decisions",
+    summary: "Catch everyday bias and make your routine calls fairer.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Inclusion is built in small, daily decisions",
+        body: [
+          "Inclusion isn't a once-a-year training — it lives in who you call on, who gets the good projects, and who gets credit.",
+          "Everyone has biases; the skill is noticing them before they shape your decisions.",
+          "Fairer daily choices unlock the full range of talent on your team.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three everyday fairness moves",
+        points: [
+          { h: "Spot bias traps", p: "Notice 'like me' favouritism, who you interrupt, and whose ideas you credit." },
+          { h: "Inclusive meetings", p: "Actively invite quieter and under-represented voices; don't let the loudest set the agenda." },
+          { h: "Fair opportunity", p: "Spread stretch projects, visibility, and credit deliberately — not just to your favourites." },
+        ],
+        note: "You can't remove bias entirely, but you can build habits that check it.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Inclusive or biased?",
+        prompt: "Sort each manager habit.",
+        leftLabel: "Inclusive / fair",
+        rightLabel: "Biased / unfair",
+        items: [
+          { text: "Rotating who gets high-visibility projects.", side: "left" },
+          { text: "Always giving the best work to the person most like you.", side: "right" },
+          { text: "Inviting quieter people's input by name.", side: "left" },
+          { text: "Crediting the loudest person for a shared idea.", side: "right" },
+          { text: "Using the same clear criteria to evaluate everyone.", side: "left" },
+          { text: "Judging 'culture fit' on gut feeling alone.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Be honest — your opportunity-sharing is…",
+        options: [
+          { text: "I give the best chances to whoever I trust most (often similar to me).", response: "Natural, but it narrows your team. We'll widen the circle." },
+          { text: "Mostly fair, but I haven't really checked.", response: "Checking is the whole skill. We'll add a simple audit." },
+          { text: "Deliberate — I track who gets what.", response: "Excellent. We'll keep refining the criteria you use." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the high-visibility project",
+        setup: "A career-making project lands on your desk. Your instinct is to give it to the person you know best — who happens to be a lot like you.",
+        question: "What's the fairest approach?",
+        choices: [
+          { text: "Give it to your go-to person; they're a safe pair of hands.", feedback: "Safe, but you keep handing opportunity to the same person and overlook hidden talent." },
+          { text: "Give it to whoever asks loudest.", feedback: "Rewards confidence over capability — and the same voices keep winning." },
+          { text: "Define what the project needs, then match it to who'd grow from it — considering everyone.", feedback: "You use criteria, not gut, and spread opportunity. Fairer and better for the team.", best: true },
+        ],
+        followUp: "Ask: 'Who haven't I given a chance like this lately?'",
+      },
+      {
+        kind: "action",
+        title: "Today's action: one fairness check",
+        intro: "Do one of these this week:",
+        steps: [
+          "List who got your last 3 stretch opportunities — notice any pattern.",
+          "In your next meeting, draw out one voice you usually don't hear from.",
+          "Pick one upcoming decision and write the criteria before you choose.",
+        ],
+        note: "Small, deliberate checks beat good intentions every time.",
+      },
+      {
+        kind: "reflect",
+        title: "What did your fairness check reveal?",
+        scaleQuestion: "How even was your opportunity-sharing when you looked?",
+        scaleOptions: ["Very uneven", "Somewhat uneven", "Fairly even", "Even"],
+        textPrompt: "What pattern or bias did you notice in your own decisions?",
+        placeholder: "I noticed…",
+        closing: "Inclusive managers get more from their teams because everyone gets a real chance to contribute and grow.",
+      },
+    ],
+  },
 ];
 
 // Helpers -------------------------------------------------------------------
@@ -1390,6 +1651,5 @@ export function getModule(id: string | null | undefined): ManagerModule | undefi
 
 // Clusters not yet authored — shown locked in the journey.
 export const LOCKED_CLUSTERS: string[] = [
-  "Team culture & collaboration",
   "Growing into a broader leader",
 ];
