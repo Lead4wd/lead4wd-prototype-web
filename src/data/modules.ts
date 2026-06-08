@@ -1118,6 +1118,268 @@ export const MODULES: ManagerModule[] = [
       },
     ],
   },
+
+  // ---------------------------------------------------------------- Module 13
+  {
+    id: "m13",
+    skill: "conflict",
+    cluster: "Conflict, difficult people & well-being",
+    title: "Handling difficult conversations & conflict",
+    summary: "Prepare, stay calm, and aim at the problem — not the person.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Avoided conversations don't disappear — they grow",
+        body: [
+          "The talk you're dreading rarely gets easier by waiting. Small issues become big ones.",
+          "Hard conversations go better when you prepare, stay calm, and focus on a shared problem to solve.",
+          "You can be kind and direct at the same time.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Structure a hard conversation",
+        points: [
+          { h: "Prepare the facts", p: "Know the specific behaviour and impact before you start. Drop the story you've built." },
+          { h: "Open without blame", p: "'I'd like to talk about X. Here's what I've seen…' — then pause and listen." },
+          { h: "Move to solutions", p: "Once both sides are understood, agree concrete next steps together." },
+        ],
+        note: "Stay curious about their side. You may be missing context that changes everything.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Calms it or escalates it?",
+        prompt: "Sort each move into the right bucket.",
+        leftLabel: "De-escalates",
+        rightLabel: "Escalates",
+        items: [
+          { text: "'Help me understand what happened from your side.'", side: "left" },
+          { text: "'You always do this.'", side: "right" },
+          { text: "Lowering your voice and slowing down.", side: "left" },
+          { text: "Bringing up five past grievances at once.", side: "right" },
+          { text: "'Here's the impact I saw; what's your read?'", side: "left" },
+          { text: "Sarcasm or eye-rolling.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "Your conflict default is…",
+        options: [
+          { text: "Avoid — I hope it resolves itself.", response: "Avoidance lets issues fester. We'll make starting feel safer." },
+          { text: "Attack — I get sharp and it gets heated.", response: "You care, but heat shuts people down. We'll add structure and calm." },
+          { text: "Address it calmly, focused on the problem.", response: "Great. We'll sharpen your prep and listening under pressure." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: two team members clash",
+        setup: "Two of your people are openly tense — snippy in meetings, undermining each other. It's affecting the team.",
+        question: "What's your best first move?",
+        choices: [
+          { text: "Tell them both to 'just be professional' and move on.", feedback: "Surface-level. The underlying conflict stays and resurfaces louder." },
+          { text: "Pick the one you think is right and back them publicly.", feedback: "Now it's you vs. someone. Trust and fairness both take a hit." },
+          { text: "Speak to each privately to understand, then bring them together on shared goals.", feedback: "You gather the real picture, stay neutral, and rebuild a working relationship.", best: true },
+        ],
+        followUp: "Understand each side privately before any joint conversation — context usually softens the story.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: prepare one hard talk",
+        intro: "Pick a conversation you've been avoiding. Before it, write:",
+        steps: [
+          "The specific behaviour + impact (facts, not story).",
+          "Your one-line, blame-free opener.",
+          "The outcome you want from the conversation.",
+        ],
+        note: "Then have it — or at least book it. Preparation turns dread into a plan.",
+      },
+      {
+        kind: "reflect",
+        title: "How did the conversation go?",
+        scaleQuestion: "How calm did you manage to stay?",
+        scaleOptions: ["Lost my cool", "Tense", "Mostly calm", "Calm throughout"],
+        textPrompt: "What did you learn from their side that you hadn't expected?",
+        placeholder: "I learned…",
+        closing: "Each hard conversation you handle well makes the next one less scary — and your team more honest.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 14
+  {
+    id: "m14",
+    skill: "conflict",
+    cluster: "Conflict, difficult people & well-being",
+    title: "Dealing with difficult behaviours",
+    summary: "Respond to defensive, disengaged, or dominating behaviour — not labels.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "There are no 'difficult people' — only behaviours and reasons",
+        body: [
+          "Labelling someone 'difficult' makes them the problem and stops you looking for the cause.",
+          "Behind most difficult behaviour is an unmet need: fear, frustration, or feeling unheard.",
+          "Address the behaviour and the cause, and most 'difficult people' become workable.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "Three common patterns",
+        points: [
+          { h: "Defensive", p: "Reacts to feedback as attack. Need: safety. Lower the threat, separate behaviour from worth." },
+          { h: "Disengaged", p: "Does the minimum, checked out. Need: meaning or recognition. Reconnect to purpose and value." },
+          { h: "Dominating", p: "Talks over others, takes all the space. Need: to be heard. Acknowledge, then make room for others." },
+        ],
+        note: "Diagnose the need before you choose the response.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Match the response to the pattern",
+        prompt: "These responses help — sort which behaviour each best fits.",
+        leftLabel: "Helps a disengaged person",
+        rightLabel: "Helps a dominating person",
+        items: [
+          { text: "'What part of this work feels most meaningful to you?'", side: "left" },
+          { text: "'Great point — let's hear from someone who hasn't spoken yet.'", side: "right" },
+          { text: "Reconnecting their task to the customer impact.", side: "left" },
+          { text: "'I'll note that and come back to it; first, Sara's view.'", side: "right" },
+          { text: "Recognising a small recent contribution sincerely.", side: "left" },
+          { text: "Setting a 'one point each, then round-robin' meeting norm.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "When someone's behaviour frustrates you, you tend to…",
+        options: [
+          { text: "Decide they're just 'like that' and work around them.", response: "Understandable, but it locks the pattern in. We'll look for the need." },
+          { text: "Confront the behaviour, but as a personal flaw.", response: "Close — reframe from 'who they are' to 'what they're doing and why'." },
+          { text: "Get curious about what's driving it, then respond.", response: "Exactly the mindset that changes difficult dynamics." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the meeting dominator",
+        setup: "One team member talks over everyone in meetings. Quieter people have stopped contributing. You need their voices.",
+        question: "What's the most effective response?",
+        choices: [
+          { text: "Publicly tell them to 'let others speak'.", feedback: "Shames them; they get defensive and the room gets tense. Need (to be heard) unmet." },
+          { text: "Say nothing and let the pattern continue.", feedback: "The quieter voices stay lost and you lose half the team's thinking." },
+          { text: "Acknowledge their input, then deliberately invite others by name — and set a turn-taking norm.", feedback: "Meets their need to be heard while making space. Behaviour shifts without humiliation.", best: true },
+        ],
+        followUp: "Privately, you can also give them a role: 'I'd love you to draw out the quieter folks.'",
+      },
+      {
+        kind: "action",
+        title: "Today's action: diagnose, don't label",
+        intro: "Pick one person whose behaviour frustrates you. Ask yourself:",
+        steps: [
+          "What's the specific behaviour (not the label)?",
+          "What unmet need might be driving it — safety, meaning, or being heard?",
+          "What's one small response that addresses the need?",
+        ],
+        note: "Try that response once this week and watch what shifts.",
+      },
+      {
+        kind: "reflect",
+        title: "Did seeing the need change things?",
+        scaleQuestion: "How did the behaviour change after your response?",
+        scaleOptions: ["No change", "Slightly", "Noticeably", "Clearly better"],
+        textPrompt: "What need turned out to be driving the behaviour?",
+        placeholder: "The need was…",
+        closing: "When you respond to the need instead of the label, most difficult dynamics start to soften.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 15
+  {
+    id: "m15",
+    skill: "listening",
+    cluster: "Conflict, difficult people & well-being",
+    title: "Motivation, engagement & well-being",
+    summary: "Understand what drives people, recognise effort, and protect against burnout.",
+    minutes: 4,
+    screens: [
+      {
+        kind: "hook",
+        title: "Motivation isn't one-size-fits-all",
+        body: [
+          "Pay matters, but day-to-day motivation comes mostly from autonomy, growth, and feeling valued.",
+          "Different people are driven by different things — and quietly burn out for different reasons.",
+          "Your attention and recognition are powerful, low-cost tools you're probably underusing.",
+        ],
+      },
+      {
+        kind: "lesson",
+        title: "What drives engagement",
+        points: [
+          { h: "Autonomy", p: "Some control over how they work. Micromanagement quietly drains motivation." },
+          { h: "Progress & growth", p: "A sense they're improving and the work matters. Recognise visible progress." },
+          { h: "Connection & recognition", p: "Feeling seen and valued by you and the team. Specific thanks beats generic praise." },
+        ],
+        note: "Watch for boundaries and burnout: chronic overwork, withdrawal, or cynicism are signals, not flaws.",
+      },
+      {
+        kind: "dragdrop",
+        title: "Builds engagement or risks burnout?",
+        prompt: "Sort each manager habit into the right bucket.",
+        leftLabel: "Builds engagement",
+        rightLabel: "Risks burnout",
+        items: [
+          { text: "Giving someone ownership of how they hit a goal.", side: "left" },
+          { text: "Praising specific, recent work sincerely.", side: "left" },
+          { text: "Messaging the team late at night, every night.", side: "right" },
+          { text: "Treating 'always on' as the standard.", side: "right" },
+          { text: "Noticing and naming someone's growth.", side: "left" },
+          { text: "Piling on work with no let-up or thanks.", side: "right" },
+        ],
+      },
+      {
+        kind: "selfcheck",
+        title: "How well do you know what drives each person?",
+        prompt: "Pick the closest.",
+        options: [
+          { text: "Honestly, I assume everyone's motivated like me.", response: "A common blind spot. We'll get curious about each person." },
+          { text: "I have a rough sense for some of the team.", response: "Good start — a couple of questions will fill the gaps." },
+          { text: "I know what drives most of my people individually.", response: "Strong. We'll turn that into tailored recognition." },
+        ],
+      },
+      {
+        kind: "scenario",
+        title: "Scenario: the quietly fading star",
+        setup: "Your strongest performer has gone quiet — less initiative, working long hours, a flatter tone. Output's still okay, for now.",
+        question: "What do you do?",
+        choices: [
+          { text: "Nothing — output is fine, so leave it.", feedback: "These are early burnout signals. By the time output drops, it's often a resignation." },
+          { text: "Pile on more, since they 'can handle it'.", feedback: "Rewarding capacity with more load is exactly how you lose your best people." },
+          { text: "Check in genuinely: 'I've noticed you seem stretched — how are you really doing?'", feedback: "You catch it early, show you see them, and can adjust load before it breaks.", best: true },
+        ],
+        followUp: "Your best people often suffer in silence. Notice the change before the crash.",
+      },
+      {
+        kind: "action",
+        title: "Today's action: one motivation check",
+        intro: "Pick one team member and, this week:",
+        steps: [
+          "Ask: 'What part of your work energises you most right now?'",
+          "Give one specific, sincere piece of recognition.",
+          "Notice their workload and stress signals honestly — and act on what you see.",
+        ],
+        note: "Recognition costs nothing and is consistently under-supplied.",
+      },
+      {
+        kind: "reflect",
+        title: "What did you learn about what drives them?",
+        scaleQuestion: "How well did your recognition or check-in land?",
+        scaleOptions: ["Fell flat", "Okay", "Landed well", "Clearly meaningful"],
+        textPrompt: "What motivates this person that you hadn't fully realised?",
+        placeholder: "They're driven by…",
+        closing: "Engaged, well-rested people do their best work. Protecting that is core management, not a soft extra.",
+      },
+    ],
+  },
 ];
 
 // Helpers -------------------------------------------------------------------
@@ -1128,7 +1390,6 @@ export function getModule(id: string | null | undefined): ManagerModule | undefi
 
 // Clusters not yet authored — shown locked in the journey.
 export const LOCKED_CLUSTERS: string[] = [
-  "Conflict, difficult people & well-being",
   "Team culture & collaboration",
   "Growing into a broader leader",
 ];
