@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Content, SkillId } from "@/data/content";
 import { fmt } from "@/lib/format";
 import { ChevronLeft } from "@/components/icons";
@@ -24,11 +24,13 @@ export default function Assessment({
   const [current, setCurrent] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>({});
 
-  // No questions (e.g. content not seeded yet) — complete immediately with defaults.
-  if (total === 0) {
-    onComplete([], computeScores([], []));
-    return null;
-  }
+  // No questions (e.g. content not seeded yet) — complete with defaults. Must be
+  // an effect: calling onComplete during render corrupts the parent's state.
+  useEffect(() => {
+    if (total === 0) onComplete([], computeScores([], []));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total]);
+  if (total === 0) return null;
 
   const q = questions[current];
   const selected = answers[current];

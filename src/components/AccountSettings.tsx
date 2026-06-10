@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Content, LanguageCode } from "@/data/content";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { updateProfile, type ProfileRow } from "@/lib/data";
@@ -29,21 +29,35 @@ export default function AccountSettings({
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Close on Escape (unless an irreversible action is in flight).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !busy) onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [busy, onClose]);
+
   const saveDetails = async () => {
     setBusy(true);
     setMsg(null);
-    await updateProfile(profile.id, { display_name: name.trim(), role: role.trim(), language });
-    onUpdated({ display_name: name.trim(), role: role.trim(), language });
+    const patch = { display_name: name.trim() || null, role: role.trim(), language };
+    await updateProfile(profile.id, patch);
+    onUpdated(patch);
     setMsg(ac.saved);
     setBusy(false);
   };
 
   const changePassword = async () => {
     if (!pw) return;
+    if (pw.length < 8) {
+      setMsg(c.auth.passwordShort);
+      return;
+    }
     setBusy(true);
     setMsg(null);
     const { error } = await sb.auth.updateUser({ password: pw });
-    setMsg(error ? error.message : ac.passwordUpdated);
+    setMsg(error ? (error.code === "weak_password" ? c.auth.errWeakPassword : error.message) : ac.passwordUpdated);
     setPw("");
     setBusy(false);
   };
@@ -58,16 +72,21 @@ export default function AccountSettings({
       setBusy(false);
       return;
     }
-    await sb.auth.signOut(); // onAuthStateChange in page.tsx routes back to auth
+    // The auth user is gone — the server call may 403; clear the local session regardless.
+    try {
+      await sb.auth.signOut();
+    } catch {
+      window.location.reload();
+    }
   };
 
   const logout = async () => {
-    await sb.auth.signOut();
+    await sb.auth.signOut(); // onAuthStateChange in page.tsx routes back to auth
   };
 
   return (
-    <div className="modal-scrim" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-scrim" onClick={() => !busy && onClose()}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label={ac.title} onClick={(e) => e.stopPropagation()}>
         <div className="modal-head">
           <h3>{ac.title}</h3>
           <button className="linkbtn" onClick={onClose}>
@@ -76,9 +95,9 @@ export default function AccountSettings({
         </div>
 
         <label className="fld-label">{ac.nameLabel}</label>
-        <input className="field" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="field" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
         <label className="fld-label">{ac.roleLabel}</label>
-        <input className="field" value={role} onChange={(e) => setRole(e.target.value)} />
+        <input className="field" maxLength={80} value={role} onChange={(e) => setRole(e.target.value)} />
         <label className="fld-label">{ac.languageLabel}</label>
         <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
           {languages.map((l) => (

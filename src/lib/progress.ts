@@ -5,7 +5,7 @@
 // (see src/lib/data.ts); these helpers are pure and take the module list as
 // input, since modules are fetched from the DB at runtime.
 // ============================================================================
-import type { SkillId } from "@/data/content";
+import { SKILL_ORDER, type SkillId } from "@/data/content";
 
 export type View =
   | "dashboard"
@@ -23,9 +23,8 @@ export type Progress = {
   scores: Record<SkillId, number>; // derived from the skills check (0 until taken)
 };
 
-const SKILLS: SkillId[] = ["communication", "listening", "delegation", "feedback", "conflict"];
 const zeroScores = (): Record<SkillId, number> =>
-  SKILLS.reduce((acc, id) => {
+  SKILL_ORDER.reduce((acc, id) => {
     acc[id] = 0;
     return acc;
   }, {} as Record<SkillId, number>);

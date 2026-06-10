@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CONTENT, LANGUAGES, type LanguageCode, type SkillId } from "@/data/content";
 import type { ManagerModule } from "@/data/modules";
 import { completeModule, emptyProgress, type Progress } from "@/lib/progress";
@@ -55,6 +55,12 @@ export default function Home() {
   const [lockedClusters, setLockedClusters] = useState<string[]>([]);
   const [onboardingQuestions, setOnboardingQuestions] = useState<OnboardingQuestion[]>([]);
   const [assessmentQuestions, setAssessmentQuestions] = useState<AssessmentQuestion[]>([]);
+  const [questionsReady, setQuestionsReady] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+
+  // Last user whose state we loaded — lets us ignore TOKEN_REFRESHED / duplicate
+  // auth events that would otherwise refetch and clobber optimistic progress.
+  const loadedUserIdRef = useRef<string | null>(null);
 
   const c = CONTENT[language];
 
@@ -76,14 +82,18 @@ export default function Home() {
       setLockedClusters(lc);
     });
 
-    const handle = async (session: { user: { id: string; email?: string } } | null) => {
+    const handle = async (session: { user: { id: string; email?: string } } | null, event?: string) => {
+      if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
       if (!session?.user) {
+        loadedUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         setProgress(emptyProgress());
         setPhase((prev) => (prev === "auth" ? "auth" : "intro"));
         return;
       }
+      if (loadedUserIdRef.current === session.user.id) return; // already loaded (token refresh etc.)
+      loadedUserIdRef.current = session.user.id;
       const u: SessionUser = { id: session.user.id, email: session.user.email ?? null };
       setUser(u);
       const prof =
@@ -110,8 +120,8 @@ export default function Home() {
     };
 
     void sb.auth.getSession().then(({ data }) => handle(data.session));
-    const { data: sub } = sb.auth.onAuthStateChange((_event, session) => {
-      void handle(session);
+    const { data: sub } = sb.auth.onAuthStateChange((event, session) => {
+      void handle(session, event);
     });
 
     return () => {
@@ -129,6 +139,7 @@ export default function Home() {
       if (!active) return;
       setOnboardingQuestions(oq);
       setAssessmentQuestions(aq);
+      setQuestionsReady(true);
     });
     return () => {
       active = false;
@@ -192,6 +203,9 @@ export default function Home() {
   if (phase === "intro") return <Onboarding c={c} onDone={() => setPhase("auth")} />;
   if (phase === "auth") return <Auth c={c} />;
   if (phase === "firstrun") {
+    // Wait for the questions to load — otherwise the skills check would render
+    // empty and auto-complete with default scores.
+    if (!questionsReady) return <Splash />;
     return (
       <FirstRun
         c={c}
@@ -216,6 +230,7 @@ export default function Home() {
       onCompleteModule={handleCompleteModule}
       onSubmitAssessment={handleSubmitAssessment}
       onProfileUpdated={handleProfileUpdated}
+      initialAccountOpen={recoveryMode}
     />
   );
 }

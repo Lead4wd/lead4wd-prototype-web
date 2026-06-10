@@ -21,7 +21,6 @@ export type SkillId =
   | "conflict";
 
 export type SkillLevel = "strength" | "developing" | "focus";
-export type WeekState = "done" | "now" | "next" | "locked";
 export type BarTone = "good" | "acc" | "normal";
 
 // --- Skill scoring -----------------------------------------------------------
@@ -57,16 +56,6 @@ export function pctFromScore(score: number): number {
 // ----------------------------------------------------------------------------
 type ScaleOption = { n: number; label: string };
 type AssessmentQuestion = { skill: SkillId; text: string };
-type JourneyLesson = { id: string; title: string };
-type JourneyWeek = {
-  id: string;
-  label: string;
-  locked?: boolean;
-  title: string;
-  subtitle: string;
-  lessons: JourneyLesson[];
-};
-type JourneyPhase = { number: string; title: string; weeks: JourneyWeek[] };
 type PulseRow = { name: string; pct: number; score: string; tone: BarTone };
 type PulseBar = { label: string; pct: number; tone: BarTone };
 type PulseQuote = { text: string; by: string };
@@ -97,7 +86,6 @@ export type Content = {
   common: {
     minRead: string; // "{n} min read"
     oneAction: string;
-    endsAction: string;
     back: string;
     startLesson: string;
   };
@@ -109,7 +97,6 @@ export type Content = {
     skip: string;
     back: string;
     next: string;
-    finish: string;
     stepLabel: string;
   };
   auth: {
@@ -121,10 +108,8 @@ export type Content = {
     remember: string;
     forgot: string;
     login: string;
-    google: string;
     noAccount: string;
     signUp: string;
-    dummy: string;
     namePlaceholder: string;
     signupTitle: string;
     signupSub: string;
@@ -134,6 +119,11 @@ export type Content = {
     forgotSent: string;
     forgotPrompt: string;
     error: string;
+    errInvalidCreds: string;
+    errUserExists: string;
+    errRateLimit: string;
+    errWeakPassword: string;
+    passwordShort: string; // client-side minimum-length message
   };
   account: {
     title: string;
@@ -162,8 +152,6 @@ export type Content = {
     sub: string;
     continueCta: string;
     nextStepKicker: string;
-    nextStepTitle: string;
-    nextStepDesc: string;
     caughtUpTitle: string;
     caughtUpDesc: string;
     planLabel: string;
@@ -188,33 +176,16 @@ export type Content = {
     resume: string;
     steps: string[]; // 3 generic "what you'll do" labels per module card
     moduleTag: string; // "Module {n}"
+    phaseLabel: string; // "Phase {n}"
     lockedTag: string;
     comingTitle: string;
-    phases: JourneyPhase[]; // legacy mockup data; the journey now renders from modules.ts
   };
   lesson: {
-    progress: string;
-    eyebrow: string;
-    title: string;
-    minutes: number;
-    body: string[];
-    quote: string;
-    actionKicker: string;
-    actionText: string;
-    reflectHeading: string;
-    reflectPrompt: string;
-    reflectPlaceholder: string;
-    foot: string;
-    saveForLater: string;
-    markComplete: string;
-    allCaughtUp: string; // shown when every unlocked lesson is done
-    lessonLabel: string; // "Lesson {n}"
-    footTemplate: string; // "Lesson {n} of {total} · {week}"
+    minutes: number; // default duration shown when no module is active
   };
   assessment: {
     exit: string;
     hint: string;
-    intro: string;
     scale: ScaleOption[];
     questions: AssessmentQuestion[];
     previous: string;
@@ -313,7 +284,6 @@ const en: Content = {
   common: {
     minRead: "{n} min read",
     oneAction: "1 action",
-    endsAction: "Ends with 1 action",
     back: "Back",
     startLesson: "Start lesson",
   },
@@ -344,22 +314,19 @@ const en: Content = {
     skip: "Skip",
     back: "Back",
     next: "Continue",
-    finish: "Continue to sign in",
     stepLabel: "Step {n} of {total}",
   },
   auth: {
     eyebrow: "Please enter your details",
     title: "Welcome back",
-    sub: "This is a prototype — any details take you straight in.",
+    sub: "Log in to pick up your journey where you left off.",
     emailPlaceholder: "Email address",
     passwordPlaceholder: "Password",
     remember: "Remember for 30 days",
     forgot: "Forgot password?",
     login: "Log in",
-    google: "Continue with Google",
     noAccount: "Don't have an account?",
     signUp: "Sign up",
-    dummy: "This is a dummy button",
     namePlaceholder: "Your name",
     signupTitle: "Create your account",
     signupSub: "Sign up to start your journey — your progress is saved to your account.",
@@ -369,6 +336,11 @@ const en: Content = {
     forgotSent: "Check your email for a password reset link.",
     forgotPrompt: "Enter your email above first, then tap Forgot password.",
     error: "Something went wrong. Check your details and try again.",
+    errInvalidCreds: "Incorrect email or password.",
+    errUserExists: "An account with this email already exists — log in instead.",
+    errRateLimit: "Too many attempts — wait a minute and try again.",
+    errWeakPassword: "That password is too weak — use at least 8 characters.",
+    passwordShort: "Use at least 8 characters for your password.",
   },
   account: {
     title: "Account settings",
@@ -404,9 +376,6 @@ const en: Content = {
     sub: "You're building two habits this week — feedback and delegation. One small action today keeps the streak alive.",
     continueCta: "Continue today's lesson →",
     nextStepKicker: "YOUR NEXT BEST STEP · {n} MIN",
-    nextStepTitle: "Give feedback that lands the same day",
-    nextStepDesc:
-      "Specific, timely feedback is the fastest way to build trust. Today's lesson gives you one line to try in your next 1:1.",
     caughtUpTitle: "You're all caught up",
     caughtUpDesc:
       "You've finished the modules available right now. New ones unlock as your journey continues.",
@@ -437,119 +406,16 @@ const en: Content = {
     resume: "Resume →",
     steps: ["Learn the idea", "Practise & decide", "Try one micro-action"],
     moduleTag: "Module {n}",
+    phaseLabel: "Phase {n}",
     lockedTag: "Locked",
     comingTitle: "More in your journey",
-    phases: [
-      {
-        number: "Phase 01",
-        title: "Foundations",
-        weeks: [
-          {
-            id: "w1",
-            label: "WEEK 01",
-            title: "Listening to understand",
-            subtitle: "Drop the urge to fix. Hear the whole thing first.",
-            lessons: [
-              { id: "w1l1", title: "The 3-second pause" },
-              { id: "w1l2", title: "Reflecting back" },
-              { id: "w1l3", title: "Asking, not telling" },
-            ],
-          },
-          {
-            id: "w2",
-            label: "WEEK 02",
-            title: "Feedback that lands",
-            subtitle: "Specific, kind, and same-day. Make it a habit.",
-            lessons: [
-              { id: "w2l1", title: "Why feedback feels hard" },
-              { id: "w2l2", title: "Name the behaviour, not the person" },
-              { id: "w2l3", title: "The same-day rule" },
-            ],
-          },
-          {
-            id: "w3",
-            label: "WEEK 03",
-            title: "Delegating with trust",
-            subtitle: "Hand over the outcome, not just the task.",
-            lessons: [
-              { id: "w3l1", title: "What only you can do" },
-              { id: "w3l2", title: "Briefing for ownership" },
-              { id: "w3l3", title: "Checking in without hovering" },
-            ],
-          },
-        ],
-      },
-      {
-        number: "Phase 02",
-        title: "Hard moments",
-        weeks: [
-          {
-            id: "w4",
-            label: "WEEK 04–05",
-            locked: true,
-            title: "Difficult conversations",
-            subtitle: "Prepare, stay calm, and land on a clear next step.",
-            lessons: [
-              { id: "w4l1", title: "Opening without the flinch" },
-              { id: "w4l2", title: "Holding the line, kindly" },
-            ],
-          },
-          {
-            id: "w5",
-            label: "WEEK 06–07",
-            locked: true,
-            title: "Coaching your team",
-            subtitle: "Grow people by asking better questions.",
-            lessons: [
-              { id: "w5l1", title: "The GROW conversation" },
-              { id: "w5l2", title: "Goals that stick" },
-            ],
-          },
-          {
-            id: "w6",
-            label: "WEEK 08+",
-            locked: true,
-            title: "Leading, not managing",
-            subtitle: "Set direction, build trust, and step back.",
-            lessons: [
-              { id: "w6l1", title: "Your operating rhythm" },
-              { id: "w6l2", title: "Re-checking your skills" },
-            ],
-          },
-        ],
-      },
-    ],
   },
   lesson: {
-    progress: "2 / 3",
-    eyebrow: "Feedback & coaching · Lesson 2",
-    title: "Name the behaviour, not the person.",
     minutes: 4,
-    body: [
-      'The fastest way to make feedback land is to take the person out of it. "You’re disorganised" is a verdict — it invites defence. Pointing at what you actually saw invites a fix.',
-      "That sentence does three things at once: it’s specific (one event, not a pattern), it’s observable (you both saw it), and it names the impact (the client noticed). Nobody has to agree on character — just on facts.",
-      "Save the labels. Describe the behaviour and its effect, then go quiet and let them respond. You’ll be surprised how often they reach the conclusion before you do.",
-    ],
-    quote: '"The deck went out with last month’s numbers, and the client noticed."',
-    actionKicker: "YOUR ACTION · TRY IT IN YOUR NEXT 1:1",
-    actionText:
-      "Give one piece of specific feedback within a day of the work happening.",
-    reflectHeading: "Quick reflection",
-    reflectPrompt:
-      "Which recent moment came to mind as you read this? (Just for you — it’s private.)",
-    reflectPlaceholder: "Last week, when the report…",
-    foot: "Lesson 2 of 3 · Week 2",
-    saveForLater: "Save for later",
-    markComplete: "Mark complete · keep streak 🔥",
-    allCaughtUp: "You're all caught up — great work. New lessons unlock as your journey continues.",
-    lessonLabel: "Lesson {n}",
-    footTemplate: "Lesson {n} of {total} · {week}",
   },
   assessment: {
     exit: "Exit",
     hint: "Think about the last 3 months — answer for what actually happened, not what you intend to do.",
-    intro:
-      "Honest answers = better coaching. If you mark everything as perfect, the app can't help you grow.",
     scale: [
       { n: 1, label: "Almost never" },
       { n: 2, label: "Rarely" },
@@ -685,7 +551,6 @@ const hi: Content = {
   common: {
     minRead: "{n} मिनट पढ़ें",
     oneAction: "1 कार्य",
-    endsAction: "1 कार्य के साथ समाप्त",
     back: "वापस",
     startLesson: "पाठ शुरू करें",
   },
@@ -711,22 +576,19 @@ const hi: Content = {
     skip: "छोड़ें",
     back: "वापस",
     next: "जारी रखें",
-    finish: "साइन इन पर जाएँ",
     stepLabel: "चरण {n} / {total}",
   },
   auth: {
     eyebrow: "कृपया अपना विवरण दर्ज करें",
     title: "वापसी पर स्वागत है",
-    sub: "यह एक प्रोटोटाइप है — कोई भी विवरण आपको सीधे अंदर ले जाएगा।",
+    sub: "लॉग इन करें और अपनी यात्रा वहीं से जारी रखें जहाँ छोड़ी थी।",
     emailPlaceholder: "ईमेल पता",
     passwordPlaceholder: "पासवर्ड",
     remember: "30 दिनों तक याद रखें",
     forgot: "पासवर्ड भूल गए?",
     login: "लॉग इन",
-    google: "Google से जारी रखें",
     noAccount: "खाता नहीं है?",
     signUp: "साइन अप",
-    dummy: "यह एक डमी बटन है",
     namePlaceholder: "आपका नाम",
     signupTitle: "अपना खाता बनाएँ",
     signupSub: "अपनी यात्रा शुरू करने के लिए साइन अप करें — आपकी प्रगति आपके खाते में सहेजी जाती है।",
@@ -736,6 +598,11 @@ const hi: Content = {
     forgotSent: "पासवर्ड रीसेट लिंक के लिए अपना ईमेल देखें।",
     forgotPrompt: "पहले ऊपर अपना ईमेल दर्ज करें, फिर 'पासवर्ड भूल गए' पर टैप करें।",
     error: "कुछ गलत हो गया। अपना विवरण जाँचें और पुनः प्रयास करें।",
+    errInvalidCreds: "ईमेल या पासवर्ड ग़लत है।",
+    errUserExists: "इस ईमेल से खाता पहले से मौजूद है — लॉग इन करें।",
+    errRateLimit: "बहुत अधिक प्रयास — एक मिनट रुककर फिर कोशिश करें।",
+    errWeakPassword: "पासवर्ड बहुत कमज़ोर है — कम से कम 8 अक्षर इस्तेमाल करें।",
+    passwordShort: "पासवर्ड में कम से कम 8 अक्षर रखें।",
   },
   account: {
     title: "खाता सेटिंग्स",
@@ -771,9 +638,6 @@ const hi: Content = {
     sub: "इस हफ़्ते आप दो आदतें बना रहे हैं — फीडबैक और प्रत्यायोजन। आज एक छोटा कदम लय को बनाए रखता है।",
     continueCta: "आज का पाठ जारी रखें →",
     nextStepKicker: "आपका अगला बेहतरीन कदम · {n} मिनट",
-    nextStepTitle: "उसी दिन असर करने वाला फीडबैक दें",
-    nextStepDesc:
-      "विशिष्ट और समय पर दिया गया फीडबैक भरोसा बनाने का सबसे तेज़ तरीका है। आज का पाठ आपको अगली 1:1 में आज़माने के लिए एक पंक्ति देता है।",
     caughtUpTitle: "आप पूरी तरह अद्यतित हैं",
     caughtUpDesc:
       "अभी उपलब्ध मॉड्यूल आपने पूरे कर लिए हैं। यात्रा आगे बढ़ने पर नए मॉड्यूल खुलेंगे।",
@@ -804,117 +668,16 @@ const hi: Content = {
     resume: "जारी रखें →",
     steps: ["विचार समझें", "अभ्यास और निर्णय", "एक छोटा कार्य आज़माएँ"],
     moduleTag: "मॉड्यूल {n}",
+    phaseLabel: "चरण {n}",
     lockedTag: "लॉक",
     comingTitle: "आपकी यात्रा में आगे",
-    phases: [
-      {
-        number: "चरण 01",
-        title: "बुनियाद",
-        weeks: [
-          {
-            id: "w1",
-            label: "सप्ताह 01",
-            title: "समझने के लिए सुनना",
-            subtitle: "सुधारने की जल्दी छोड़ें। पहले पूरी बात सुनें।",
-            lessons: [
-              { id: "w1l1", title: "3-सेकंड का ठहराव" },
-              { id: "w1l2", title: "दोहराकर पुष्टि करना" },
-              { id: "w1l3", title: "बताना नहीं, पूछना" },
-            ],
-          },
-          {
-            id: "w2",
-            label: "सप्ताह 02",
-            title: "असर करने वाला फीडबैक",
-            subtitle: "विशिष्ट, सौम्य और उसी दिन। इसे आदत बनाएँ।",
-            lessons: [
-              { id: "w2l1", title: "फीडबैक मुश्किल क्यों लगता है" },
-              { id: "w2l2", title: "व्यक्ति नहीं, व्यवहार का नाम लें" },
-              { id: "w2l3", title: "उसी-दिन का नियम" },
-            ],
-          },
-          {
-            id: "w3",
-            label: "सप्ताह 03",
-            title: "भरोसे के साथ काम सौंपना",
-            subtitle: "सिर्फ़ काम नहीं, परिणाम सौंपें।",
-            lessons: [
-              { id: "w3l1", title: "जो केवल आप कर सकते हैं" },
-              { id: "w3l2", title: "स्वामित्व के लिए ब्रीफ़िंग" },
-              { id: "w3l3", title: "बिना मँडराए जाँच करना" },
-            ],
-          },
-        ],
-      },
-      {
-        number: "चरण 02",
-        title: "कठिन पल",
-        weeks: [
-          {
-            id: "w4",
-            label: "सप्ताह 04–05",
-            locked: true,
-            title: "कठिन बातचीत",
-            subtitle: "तैयारी करें, शांत रहें, और एक स्पष्ट अगले कदम पर पहुँचें।",
-            lessons: [
-              { id: "w4l1", title: "बिना झिझक शुरुआत" },
-              { id: "w4l2", title: "सौम्यता से अपनी बात पर टिके रहना" },
-            ],
-          },
-          {
-            id: "w5",
-            label: "सप्ताह 06–07",
-            locked: true,
-            title: "अपनी टीम को कोचिंग",
-            subtitle: "बेहतर सवाल पूछकर लोगों को आगे बढ़ाएँ।",
-            lessons: [
-              { id: "w5l1", title: "GROW बातचीत" },
-              { id: "w5l2", title: "टिकने वाले लक्ष्य" },
-            ],
-          },
-          {
-            id: "w6",
-            label: "सप्ताह 08+",
-            locked: true,
-            title: "प्रबंधन नहीं, नेतृत्व",
-            subtitle: "दिशा तय करें, भरोसा बनाएँ, और पीछे हटें।",
-            lessons: [
-              { id: "w6l1", title: "आपकी कार्य-लय" },
-              { id: "w6l2", title: "अपने कौशल की दोबारा जाँच" },
-            ],
-          },
-        ],
-      },
-    ],
   },
   lesson: {
-    progress: "2 / 3",
-    eyebrow: "फीडबैक और कोचिंग · पाठ 2",
-    title: "व्यक्ति नहीं, व्यवहार का नाम लें।",
     minutes: 4,
-    body: [
-      'फीडबैक को असरदार बनाने का सबसे तेज़ तरीका है उसमें से व्यक्ति को हटा देना। "तुम अव्यवस्थित हो" एक फ़ैसला है — यह बचाव को बुलावा देता है। जो आपने सचमुच देखा उसे बताना, सुधार को बुलावा देता है।',
-      "वह वाक्य एक साथ तीन काम करता है: यह विशिष्ट है (एक घटना, कोई पैटर्न नहीं), यह देखा जा सकने वाला है (आप दोनों ने देखा), और यह असर बताता है (ग्राहक ने ध्यान दिया)। चरित्र पर सहमत होने की ज़रूरत नहीं — सिर्फ़ तथ्यों पर।",
-      "लेबल छोड़ दें। व्यवहार और उसका असर बताएँ, फिर चुप हो जाएँ और उन्हें जवाब देने दें। आप हैरान होंगे कि कितनी बार वे आपसे पहले ही नतीजे तक पहुँच जाते हैं।",
-    ],
-    quote: '"प्रस्तुति पिछले महीने के आँकड़ों के साथ चली गई, और ग्राहक ने ध्यान दिया।"',
-    actionKicker: "आपका कार्य · इसे अपनी अगली 1:1 में आज़माएँ",
-    actionText: "काम होने के एक दिन के भीतर एक विशिष्ट फीडबैक दें।",
-    reflectHeading: "त्वरित चिंतन",
-    reflectPrompt: "इसे पढ़ते समय कौन-सा हालिया पल याद आया? (सिर्फ़ आपके लिए — यह निजी है।)",
-    reflectPlaceholder: "पिछले हफ़्ते, जब रिपोर्ट…",
-    foot: "पाठ 3 में से 2 · सप्ताह 2",
-    saveForLater: "बाद के लिए सहेजें",
-    markComplete: "पूर्ण करें · लय बनाए रखें 🔥",
-    allCaughtUp: "आप पूरी तरह अद्यतित हैं — बढ़िया काम। यात्रा आगे बढ़ने पर नए पाठ खुलेंगे।",
-    lessonLabel: "पाठ {n}",
-    footTemplate: "{total} में से पाठ {n} · {week}",
   },
   assessment: {
     exit: "बाहर",
     hint: "पिछले 3 महीनों के बारे में सोचें — जो वास्तव में हुआ उसके लिए उत्तर दें, न कि जो आप करना चाहते हैं।",
-    intro:
-      "ईमानदार उत्तर = बेहतर कोचिंग। अगर आप सब कुछ परफ़ेक्ट बताएँगे, तो ऐप आपकी मदद नहीं कर पाएगा।",
     scale: [
       { n: 1, label: "लगभग कभी नहीं" },
       { n: 2, label: "शायद ही कभी" },
@@ -1050,7 +813,6 @@ const te: Content = {
   common: {
     minRead: "{n} నిమి. చదవండి",
     oneAction: "1 చర్య",
-    endsAction: "1 చర్యతో ముగుస్తుంది",
     back: "వెనుకకు",
     startLesson: "పాఠం ప్రారంభించండి",
   },
@@ -1076,22 +838,19 @@ const te: Content = {
     skip: "దాటవేయి",
     back: "వెనుకకు",
     next: "కొనసాగించు",
-    finish: "సైన్ ఇన్‌కు వెళ్లండి",
     stepLabel: "దశ {n} / {total}",
   },
   auth: {
     eyebrow: "దయచేసి మీ వివరాలను నమోదు చేయండి",
     title: "తిరిగి స్వాగతం",
-    sub: "ఇది ఒక ప్రోటోటైప్ — ఏ వివరాలైనా మిమ్మల్ని నేరుగా లోపలికి తీసుకెళ్తాయి.",
+    sub: "లాగిన్ అయ్యి, మీ ప్రయాణాన్ని ఆపిన చోటు నుండే కొనసాగించండి.",
     emailPlaceholder: "ఇమెయిల్ చిరునామా",
     passwordPlaceholder: "పాస్‌వర్డ్",
     remember: "30 రోజులు గుర్తుంచుకో",
     forgot: "పాస్‌వర్డ్ మర్చిపోయారా?",
     login: "లాగిన్",
-    google: "Google తో కొనసాగించండి",
     noAccount: "ఖాతా లేదా?",
     signUp: "సైన్ అప్",
-    dummy: "ఇది ఒక డమ్మీ బటన్",
     namePlaceholder: "మీ పేరు",
     signupTitle: "మీ ఖాతాను సృష్టించండి",
     signupSub: "మీ ప్రయాణాన్ని ప్రారంభించడానికి సైన్ అప్ చేయండి — మీ పురోగతి మీ ఖాతాలో సేవ్ అవుతుంది.",
@@ -1101,6 +860,11 @@ const te: Content = {
     forgotSent: "పాస్‌వర్డ్ రీసెట్ లింక్ కోసం మీ ఇమెయిల్‌ను చూడండి.",
     forgotPrompt: "ముందుగా పైన మీ ఇమెయిల్‌ను నమోదు చేయండి, ఆపై 'పాస్‌వర్డ్ మర్చిపోయారా' నొక్కండి.",
     error: "ఏదో తప్పు జరిగింది. మీ వివరాలను తనిఖీ చేసి మళ్లీ ప్రయత్నించండి.",
+    errInvalidCreds: "ఇమెయిల్ లేదా పాస్‌వర్డ్ తప్పు.",
+    errUserExists: "ఈ ఇమెయిల్‌తో ఖాతా ఇప్పటికే ఉంది — లాగిన్ అవ్వండి.",
+    errRateLimit: "చాలా ప్రయత్నాలు — ఒక నిమిషం ఆగి మళ్లీ ప్రయత్నించండి.",
+    errWeakPassword: "పాస్‌వర్డ్ చాలా బలహీనంగా ఉంది — కనీసం 8 అక్షరాలు వాడండి.",
+    passwordShort: "పాస్‌వర్డ్‌లో కనీసం 8 అక్షరాలు ఉండాలి.",
   },
   account: {
     title: "ఖాతా సెట్టింగ్‌లు",
@@ -1136,9 +900,6 @@ const te: Content = {
     sub: "ఈ వారం మీరు రెండు అలవాట్లను నిర్మిస్తున్నారు — ఫీడ్‌బ్యాక్ మరియు అప్పగింత. ఈరోజు ఒక చిన్న చర్య స్ట్రీక్‌ను నిలుపుతుంది.",
     continueCta: "నేటి పాఠాన్ని కొనసాగించండి →",
     nextStepKicker: "మీ తదుపరి ఉత్తమ అడుగు · {n} నిమి.",
-    nextStepTitle: "అదే రోజు ప్రభావం చూపే ఫీడ్‌బ్యాక్ ఇవ్వండి",
-    nextStepDesc:
-      "నిర్దిష్టమైన, సమయానుకూల ఫీడ్‌బ్యాక్ నమ్మకాన్ని నిర్మించే అత్యంత వేగవంతమైన మార్గం. నేటి పాఠం మీ తదుపరి 1:1లో ప్రయత్నించడానికి ఒక వాక్యాన్ని ఇస్తుంది.",
     caughtUpTitle: "మీరు పూర్తిగా తాజాగా ఉన్నారు",
     caughtUpDesc:
       "ప్రస్తుతం అందుబాటులో ఉన్న మాడ్యూల్‌లను మీరు పూర్తి చేశారు. ప్రయాణం కొనసాగుతున్న కొద్దీ కొత్తవి తెరుచుకుంటాయి.",
@@ -1169,117 +930,16 @@ const te: Content = {
     resume: "కొనసాగించు →",
     steps: ["భావనను నేర్చుకోండి", "అభ్యాసం & నిర్ణయం", "ఒక చిన్న చర్య ప్రయత్నించండి"],
     moduleTag: "మాడ్యూల్ {n}",
+    phaseLabel: "దశ {n}",
     lockedTag: "లాక్",
     comingTitle: "మీ ప్రయాణంలో మరిన్ని",
-    phases: [
-      {
-        number: "దశ 01",
-        title: "పునాదులు",
-        weeks: [
-          {
-            id: "w1",
-            label: "వారం 01",
-            title: "అర్థం చేసుకోవడానికి వినడం",
-            subtitle: "సరిచేయాలనే ఆత్రుతను వదలండి. ముందు మొత్తం వినండి.",
-            lessons: [
-              { id: "w1l1", title: "3-సెకన్ల విరామం" },
-              { id: "w1l2", title: "తిరిగి ప్రతిబింబించడం" },
-              { id: "w1l3", title: "చెప్పడం కాదు, అడగడం" },
-            ],
-          },
-          {
-            id: "w2",
-            label: "వారం 02",
-            title: "ప్రభావం చూపే ఫీడ్‌బ్యాక్",
-            subtitle: "నిర్దిష్టం, దయతో, అదే రోజు. దీన్ని అలవాటు చేసుకోండి.",
-            lessons: [
-              { id: "w2l1", title: "ఫీడ్‌బ్యాక్ ఎందుకు కష్టంగా అనిపిస్తుంది" },
-              { id: "w2l2", title: "వ్యక్తి కాదు, ప్రవర్తనకు పేరు పెట్టండి" },
-              { id: "w2l3", title: "అదే-రోజు నియమం" },
-            ],
-          },
-          {
-            id: "w3",
-            label: "వారం 03",
-            title: "నమ్మకంతో అప్పగించడం",
-            subtitle: "కేవలం పని కాదు, ఫలితాన్ని అప్పగించండి.",
-            lessons: [
-              { id: "w3l1", title: "మీరు మాత్రమే చేయగలిగేది" },
-              { id: "w3l2", title: "యాజమాన్యం కోసం బ్రీఫింగ్" },
-              { id: "w3l3", title: "మీద పడకుండా తనిఖీ చేయడం" },
-            ],
-          },
-        ],
-      },
-      {
-        number: "దశ 02",
-        title: "కఠిన క్షణాలు",
-        weeks: [
-          {
-            id: "w4",
-            label: "వారం 04–05",
-            locked: true,
-            title: "కఠిన సంభాషణలు",
-            subtitle: "సిద్ధమవ్వండి, ప్రశాంతంగా ఉండండి, స్పష్టమైన తదుపరి అడుగుకు చేరండి.",
-            lessons: [
-              { id: "w4l1", title: "తడబాటు లేకుండా మొదలుపెట్టడం" },
-              { id: "w4l2", title: "దయతో మీ మాటపై నిలబడటం" },
-            ],
-          },
-          {
-            id: "w5",
-            label: "వారం 06–07",
-            locked: true,
-            title: "మీ టీమ్‌కు కోచింగ్",
-            subtitle: "మెరుగైన ప్రశ్నలడిగి వ్యక్తులను ఎదిగించండి.",
-            lessons: [
-              { id: "w5l1", title: "GROW సంభాషణ" },
-              { id: "w5l2", title: "నిలిచే లక్ష్యాలు" },
-            ],
-          },
-          {
-            id: "w6",
-            label: "వారం 08+",
-            locked: true,
-            title: "నిర్వహణ కాదు, నాయకత్వం",
-            subtitle: "దిశను నిర్ణయించండి, నమ్మకాన్ని నిర్మించండి, వెనక్కి తగ్గండి.",
-            lessons: [
-              { id: "w6l1", title: "మీ పని-లయ" },
-              { id: "w6l2", title: "మీ నైపుణ్యాలను మళ్లీ తనిఖీ" },
-            ],
-          },
-        ],
-      },
-    ],
   },
   lesson: {
-    progress: "2 / 3",
-    eyebrow: "ఫీడ్‌బ్యాక్ & కోచింగ్ · పాఠం 2",
-    title: "వ్యక్తి కాదు, ప్రవర్తనకు పేరు పెట్టండి.",
     minutes: 4,
-    body: [
-      'ఫీడ్‌బ్యాక్ ప్రభావవంతంగా చేయడానికి అత్యంత వేగవంతమైన మార్గం దాన్నుంచి వ్యక్తిని తొలగించడం. "నువ్వు అస్తవ్యస్తంగా ఉన్నావు" అనేది ఒక తీర్పు — అది రక్షణను ఆహ్వానిస్తుంది. మీరు నిజంగా చూసినదాన్ని చూపడం ఒక సరిదిద్దును ఆహ్వానిస్తుంది.',
-      "ఆ వాక్యం ఒకేసారి మూడు పనులు చేస్తుంది: అది నిర్దిష్టం (ఒక సంఘటన, ఒక నమూనా కాదు), అది గమనించదగినది (మీరిద్దరూ చూశారు), మరియు అది ప్రభావాన్ని పేర్కొంటుంది (క్లయింట్ గమనించారు). స్వభావంపై ఏకీభవించాల్సిన అవసరం లేదు — కేవలం వాస్తవాలపై.",
-      "లేబుళ్లను వదలండి. ప్రవర్తనను, దాని ప్రభావాన్ని వివరించండి, తర్వాత నిశ్శబ్దంగా ఉండి వారిని స్పందించనివ్వండి. మీకంటే ముందే వారు తరచూ నిర్ణయానికి చేరుకోవడం చూసి మీరు ఆశ్చర్యపోతారు.",
-    ],
-    quote: '"ప్రెజెంటేషన్ గత నెల అంకెలతో వెళ్లింది, క్లయింట్ గమనించారు."',
-    actionKicker: "మీ చర్య · మీ తదుపరి 1:1లో ప్రయత్నించండి",
-    actionText: "పని జరిగిన ఒక రోజులోపు ఒక నిర్దిష్ట ఫీడ్‌బ్యాక్ ఇవ్వండి.",
-    reflectHeading: "త్వరిత ఆలోచన",
-    reflectPrompt: "ఇది చదువుతున్నప్పుడు ఏ ఇటీవలి క్షణం గుర్తొచ్చింది? (మీ కోసమే — ఇది గోప్యం.)",
-    reflectPlaceholder: "గత వారం, రిపోర్ట్ ఉన్నప్పుడు…",
-    foot: "3లో పాఠం 2 · వారం 2",
-    saveForLater: "తర్వాత కోసం సేవ్ చేయి",
-    markComplete: "పూర్తి చేయి · స్ట్రీక్ నిలుపు 🔥",
-    allCaughtUp: "మీరు పూర్తిగా తాజాగా ఉన్నారు — చక్కని పని. ప్రయాణం కొనసాగుతున్న కొద్దీ కొత్త పాఠాలు తెరుచుకుంటాయి.",
-    lessonLabel: "పాఠం {n}",
-    footTemplate: "{total}లో పాఠం {n} · {week}",
   },
   assessment: {
     exit: "నిష్క్రమించు",
     hint: "గత 3 నెలల గురించి ఆలోచించండి — మీరు ఏం చేయాలనుకుంటున్నారో కాదు, నిజంగా ఏం జరిగిందో దానికి సమాధానమివ్వండి.",
-    intro:
-      "నిజాయితీ సమాధానాలు = మెరుగైన కోచింగ్. అన్నీ పర్‌ఫెక్ట్ అని గుర్తిస్తే, యాప్ మీ ఎదుగుదలకు సహాయపడలేదు.",
     scale: [
       { n: 1, label: "దాదాపు ఎప్పుడూ లేదు" },
       { n: 2, label: "అరుదుగా" },

@@ -16,27 +16,50 @@ export default function Auth({ c }: { c: Content }) {
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
+  // Translate the common Supabase auth error codes; fall back to the raw message.
+  const authMsg = (error: { code?: string; message: string }) => {
+    switch (error.code) {
+      case "invalid_credentials":
+        return a.errInvalidCreds;
+      case "user_already_exists":
+      case "email_exists":
+        return a.errUserExists;
+      case "over_request_rate_limit":
+      case "over_email_send_rate_limit":
+        return a.errRateLimit;
+      case "weak_password":
+        return a.errWeakPassword;
+      default:
+        return error.message;
+    }
+  };
+
   const submit = async () => {
-    if (!email || !password) return;
+    const em = email.trim();
+    if (!em || !password) return;
+    if (mode === "signup" && password.length < 8) {
+      setMsg(a.passwordShort);
+      return;
+    }
     setBusy(true);
     setMsg(null);
     try {
       if (mode === "signup") {
         const { data, error } = await sb.auth.signUp({
-          email,
+          email: em,
           password,
-          options: { data: { display_name: name.trim() || email.split("@")[0] } },
+          options: { data: { display_name: name.trim() || em.split("@")[0] } },
         });
         if (error) {
-          setMsg(error.message);
+          setMsg(authMsg(error));
         } else if (!data.session) {
           // No session → email confirmation is still enabled. Surface a clear message.
-          const { error: e2 } = await sb.auth.signInWithPassword({ email, password });
-          if (e2) setMsg(e2.message);
+          const { error: e2 } = await sb.auth.signInWithPassword({ email: em, password });
+          if (e2) setMsg(authMsg(e2));
         }
       } else {
-        const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) setMsg(error.message);
+        const { error } = await sb.auth.signInWithPassword({ email: em, password });
+        if (error) setMsg(authMsg(error));
       }
     } catch {
       setMsg(a.error);
@@ -46,14 +69,15 @@ export default function Auth({ c }: { c: Content }) {
   };
 
   const forgot = async () => {
-    if (!email) {
+    const em = email.trim();
+    if (!em) {
       setMsg(a.forgotPrompt);
       return;
     }
     setBusy(true);
     setMsg(null);
-    const { error } = await sb.auth.resetPasswordForEmail(email);
-    setMsg(error ? error.message : a.forgotSent);
+    const { error } = await sb.auth.resetPasswordForEmail(em);
+    setMsg(error ? authMsg(error) : a.forgotSent);
     setBusy(false);
   };
 
@@ -79,6 +103,8 @@ export default function Auth({ c }: { c: Content }) {
             <input
               className="field"
               type="text"
+              maxLength={80}
+              autoComplete="name"
               placeholder={a.namePlaceholder}
               value={name}
               onChange={(e) => setName(e.target.value)}

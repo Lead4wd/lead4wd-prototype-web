@@ -128,6 +128,7 @@ export default function AppShell({
   onCompleteModule,
   onSubmitAssessment,
   onProfileUpdated,
+  initialAccountOpen = false,
 }: {
   c: Content;
   language: LanguageCode;
@@ -141,13 +142,21 @@ export default function AppShell({
   onCompleteModule: (moduleId: string, result: ModuleResult) => void;
   onSubmitAssessment: (answers: (number | null)[], scores: Record<SkillId, number>) => void;
   onProfileUpdated: (patch: Partial<ProfileRow>) => void;
+  initialAccountOpen?: boolean;
 }) {
   const [view, setView] = useState<View>("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(initialAccountOpen);
+
+  // Password-recovery links land mid-session — surface the settings modal so
+  // the user can set a new password.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (initialAccountOpen) setAccountOpen(true);
+  }, [initialAccountOpen]);
 
   // Close popovers on any outside click.
   useEffect(() => {

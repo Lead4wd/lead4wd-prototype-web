@@ -58,7 +58,7 @@ export default function Journey({
       {clusters.map((cl, ci) => (
         <div className="phase" key={ci}>
           <div className="ph-top">
-            <span className="pn">{`Phase 0${ci + 1}`}</span>
+            <span className="pn">{fmt(j.phaseLabel, { n: String(ci + 1).padStart(2, "0") })}</span>
             <h3>{cl.title}</h3>
             <span className="ln" />
           </div>
@@ -104,7 +104,7 @@ export default function Journey({
       {lockedClusters.length > 0 && (
         <div className="phase">
           <div className="ph-top">
-            <span className="pn">{`Phase 0${clusters.length + 1}`}</span>
+            <span className="pn">{fmt(j.phaseLabel, { n: String(clusters.length + 1).padStart(2, "0") })}</span>
             <h3>{j.comingTitle}</h3>
             <span className="ln" />
           </div>

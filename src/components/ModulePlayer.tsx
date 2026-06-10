@@ -255,6 +255,7 @@ function ScreenView({
             <h4>{screen.textPrompt}</h4>
             <textarea
               placeholder={screen.placeholder}
+              maxLength={2000}
               value={reflection}
               onChange={(e) => setReflection(e.target.value)}
             />
