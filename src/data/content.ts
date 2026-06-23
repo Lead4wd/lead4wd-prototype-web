@@ -65,6 +65,7 @@ export type Content = {
   nav: {
     coaching: string;
     insight: string;
+    admin: string; // admin nav-group label
     home: string;
     journey: string;
     journeyBadge: string;
@@ -72,11 +73,13 @@ export type Content = {
     results: string;
     team: string;
     assessment: string;
+    analytics: string; // user-facing analytics page
+    adminPanel: string; // admin panel nav item
   };
   topbar: { search: string; streakLabel: string }; // streakLabel: "{n}-day streak"
   profile: { name: string; role: string };
   pageTitles: Record<
-    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment",
+    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment" | "analytics" | "admin",
     string
   >;
   levels: { strength: string; developing: string; focus: string };
@@ -145,7 +148,7 @@ export type Content = {
     signOut: string;
     close: string;
   };
-  cookie: { message: string; accept: string };
+  cookie: { message: string; accept: string; decline: string };
   dashboard: {
     eyebrowDate: string;
     greetings: { morning: string; afternoon: string; evening: string };
@@ -237,6 +240,69 @@ export type Content = {
     retake: string;
     goToQuestions: string;
   };
+  analytics: {
+    eyebrow: string;
+    title: string;
+    lede: string;
+    totalTime: string;
+    activeDays: string;
+    completed: string;
+    skipped: string;
+    timeByModuleTitle: string;
+    dailyTitle: string;
+    minutesUnit: string; // "{n} min"
+    noData: string;
+  };
+  admin: {
+    title: string;
+    lede: string;
+    totalUsers: string;
+    totalOnboarded: string;
+    totalCompleted: string;
+    totalTime: string;
+    searchPlaceholder: string;
+    colUser: string;
+    colEmail: string;
+    colStreak: string;
+    colProgress: string;
+    colTime: string;
+    colLastActive: string;
+    never: string;
+    adminTag: string;
+    back: string;
+    secProgress: string;
+    secResponses: string;
+    secAssessment: string;
+    secOnboarding: string;
+    secTime: string;
+    secSkips: string;
+    secDaily: string;
+    statusLabel: string;
+    scoreLabel: string;
+    reflectionLabel: string;
+    moduleLabel: string; // "Module {n}"
+    screenLabel: string; // "Screen {n}"
+    skipLabel: string; // "Skipped {kind} on screen {n}"
+    correctTag: string;
+    wrongTag: string;
+    noResponses: string;
+    noSkips: string;
+    noUsers: string;
+    minutesUnit: string;
+    valueLabel: string; // assessment answer value
+  };
+  ga: {
+    title: string;
+    lede: string;
+    notConfigured: string;
+    activeUsers: string;
+    newUsers: string;
+    sessions: string;
+    avgEngagement: string;
+    topEvents: string;
+    dailyActive: string;
+    secondsUnit: string; // "{n}s"
+  };
   language: { label: string; en: string; hi: string; te: string };
 };
 
@@ -247,6 +313,7 @@ const en: Content = {
   nav: {
     coaching: "Coaching",
     insight: "Insight",
+    admin: "Admin",
     home: "Home",
     journey: "My journey",
     journeyBadge: "W2",
@@ -254,6 +321,8 @@ const en: Content = {
     results: "Skills profile",
     team: "Team Pulse",
     assessment: "Re-take check",
+    analytics: "My analytics",
+    adminPanel: "User analytics",
   },
   topbar: { search: "Search lessons & skills", streakLabel: "{n}-day streak" },
   profile: { name: "User", role: "Team lead · Pro" },
@@ -264,6 +333,8 @@ const en: Content = {
     results: "Your results",
     team: "Team Pulse",
     assessment: "Skills check",
+    analytics: "My analytics",
+    admin: "Admin · user analytics",
   },
   levels: { strength: "Strength", developing: "Developing", focus: "Focus area" },
   weekStates: { done: "Done", now: "In progress", next: "Up next", locked: "Locked" },
@@ -363,8 +434,10 @@ const en: Content = {
     close: "Close",
   },
   cookie: {
-    message: "We use essential cookies to keep you signed in. No tracking.",
-    accept: "Got it",
+    message:
+      "Essential cookies keep you signed in. With your consent, we also use Google Analytics to understand how the app is used.",
+    accept: "Accept analytics",
+    decline: "Essential only",
   },
   dashboard: {
     eyebrowDate: "Module {n} of {total}",
@@ -504,6 +577,69 @@ const en: Content = {
     retake: "Retake module",
     goToQuestions: "Go to the questions",
   },
+  analytics: {
+    eyebrow: "Your activity",
+    title: "How you're learning",
+    lede: "Your time, momentum, and progress so far — just for you.",
+    totalTime: "Total time",
+    activeDays: "Active days",
+    completed: "Modules completed",
+    skipped: "Sections skipped",
+    timeByModuleTitle: "Time per module",
+    dailyTitle: "Daily activity",
+    minutesUnit: "{n} min",
+    noData: "No activity yet — start a module and your stats will appear here.",
+  },
+  admin: {
+    title: "User analytics",
+    lede: "Every learner's progress, responses, time, and skips.",
+    totalUsers: "Users",
+    totalOnboarded: "Onboarded",
+    totalCompleted: "Modules completed",
+    totalTime: "Total time",
+    searchPlaceholder: "Search by name or email",
+    colUser: "User",
+    colEmail: "Email",
+    colStreak: "Streak",
+    colProgress: "Completed",
+    colTime: "Time",
+    colLastActive: "Last active",
+    never: "Never",
+    adminTag: "Admin",
+    back: "← All users",
+    secProgress: "Module progress",
+    secResponses: "Module responses",
+    secAssessment: "Skills-check answers",
+    secOnboarding: "Onboarding answers",
+    secTime: "Time per module",
+    secSkips: "Skipped sections",
+    secDaily: "Daily activity",
+    statusLabel: "Status",
+    scoreLabel: "Score",
+    reflectionLabel: "Reflection",
+    moduleLabel: "Module {n}",
+    screenLabel: "Screen {n}",
+    skipLabel: "Skipped {kind} on screen {n}",
+    correctTag: "Correct",
+    wrongTag: "Wrong",
+    noResponses: "No responses recorded.",
+    noSkips: "No skipped sections.",
+    noUsers: "No users yet.",
+    minutesUnit: "{n} min",
+    valueLabel: "Rated {n}/5",
+  },
+  ga: {
+    title: "Product analytics (Google Analytics)",
+    lede: "Anonymous, aggregate usage across everyone — no individual data.",
+    notConfigured: "Google Analytics isn't connected yet. Add the credentials to see aggregate usage here.",
+    activeUsers: "Active users",
+    newUsers: "New users",
+    sessions: "Sessions",
+    avgEngagement: "Avg engagement",
+    topEvents: "Top events",
+    dailyActive: "Daily active users",
+    secondsUnit: "{n}s",
+  },
   language: { label: "Language", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
 
@@ -514,6 +650,7 @@ const hi: Content = {
   nav: {
     coaching: "कोचिंग",
     insight: "अंतर्दृष्टि",
+    admin: "एडमिन",
     home: "होम",
     journey: "मेरी यात्रा",
     journeyBadge: "स2",
@@ -521,6 +658,8 @@ const hi: Content = {
     results: "कौशल प्रोफ़ाइल",
     team: "टीम पल्स",
     assessment: "दोबारा जाँच",
+    analytics: "मेरा विश्लेषण",
+    adminPanel: "उपयोगकर्ता विश्लेषण",
   },
   topbar: { search: "पाठ और कौशल खोजें", streakLabel: "{n}-दिन की लय" },
   profile: { name: "उपयोगकर्ता", role: "टीम लीड · प्रो" },
@@ -531,6 +670,8 @@ const hi: Content = {
     results: "आपके परिणाम",
     team: "टीम पल्स",
     assessment: "कौशल जाँच",
+    analytics: "मेरा विश्लेषण",
+    admin: "एडमिन · उपयोगकर्ता विश्लेषण",
   },
   levels: { strength: "मज़बूती", developing: "विकासशील", focus: "फोकस क्षेत्र" },
   weekStates: { done: "पूर्ण", now: "जारी है", next: "अगला", locked: "लॉक" },
@@ -625,8 +766,10 @@ const hi: Content = {
     close: "बंद करें",
   },
   cookie: {
-    message: "आपको साइन इन रखने के लिए हम आवश्यक कुकीज़ का उपयोग करते हैं। कोई ट्रैकिंग नहीं।",
-    accept: "ठीक है",
+    message:
+      "आवश्यक कुकीज़ आपको साइन इन रखती हैं। आपकी सहमति से हम ऐप के उपयोग को समझने के लिए Google Analytics का भी उपयोग करते हैं।",
+    accept: "विश्लेषण स्वीकारें",
+    decline: "केवल आवश्यक",
   },
   dashboard: {
     eyebrowDate: "{total} में से मॉड्यूल {n}",
@@ -766,6 +909,69 @@ const hi: Content = {
     retake: "मॉड्यूल दोबारा करें",
     goToQuestions: "प्रश्नों पर जाएँ",
   },
+  analytics: {
+    eyebrow: "आपकी गतिविधि",
+    title: "आप कैसे सीख रहे हैं",
+    lede: "अब तक आपका समय, गति और प्रगति — सिर्फ़ आपके लिए।",
+    totalTime: "कुल समय",
+    activeDays: "सक्रिय दिन",
+    completed: "मॉड्यूल पूर्ण",
+    skipped: "छोड़े गए हिस्से",
+    timeByModuleTitle: "प्रति मॉड्यूल समय",
+    dailyTitle: "दैनिक गतिविधि",
+    minutesUnit: "{n} मिनट",
+    noData: "अभी कोई गतिविधि नहीं — एक मॉड्यूल शुरू करें और आपके आँकड़े यहाँ दिखेंगे।",
+  },
+  admin: {
+    title: "उपयोगकर्ता विश्लेषण",
+    lede: "हर सीखने वाले की प्रगति, उत्तर, समय और छोड़े गए हिस्से।",
+    totalUsers: "उपयोगकर्ता",
+    totalOnboarded: "ऑनबोर्ड हुए",
+    totalCompleted: "मॉड्यूल पूर्ण",
+    totalTime: "कुल समय",
+    searchPlaceholder: "नाम या ईमेल से खोजें",
+    colUser: "उपयोगकर्ता",
+    colEmail: "ईमेल",
+    colStreak: "लय",
+    colProgress: "पूर्ण",
+    colTime: "समय",
+    colLastActive: "अंतिम सक्रिय",
+    never: "कभी नहीं",
+    adminTag: "एडमिन",
+    back: "← सभी उपयोगकर्ता",
+    secProgress: "मॉड्यूल प्रगति",
+    secResponses: "मॉड्यूल उत्तर",
+    secAssessment: "कौशल-जाँच उत्तर",
+    secOnboarding: "ऑनबोर्डिंग उत्तर",
+    secTime: "प्रति मॉड्यूल समय",
+    secSkips: "छोड़े गए हिस्से",
+    secDaily: "दैनिक गतिविधि",
+    statusLabel: "स्थिति",
+    scoreLabel: "स्कोर",
+    reflectionLabel: "चिंतन",
+    moduleLabel: "मॉड्यूल {n}",
+    screenLabel: "स्क्रीन {n}",
+    skipLabel: "स्क्रीन {n} पर {kind} छोड़ा",
+    correctTag: "सही",
+    wrongTag: "गलत",
+    noResponses: "कोई उत्तर दर्ज नहीं।",
+    noSkips: "कोई हिस्सा नहीं छोड़ा।",
+    noUsers: "अभी कोई उपयोगकर्ता नहीं।",
+    minutesUnit: "{n} मिनट",
+    valueLabel: "{n}/5 दिया",
+  },
+  ga: {
+    title: "प्रोडक्ट विश्लेषण (Google Analytics)",
+    lede: "सभी का गुमनाम, समग्र उपयोग — कोई व्यक्तिगत डेटा नहीं।",
+    notConfigured: "Google Analytics अभी जुड़ा नहीं है। समग्र उपयोग देखने के लिए क्रेडेंशियल जोड़ें।",
+    activeUsers: "सक्रिय उपयोगकर्ता",
+    newUsers: "नए उपयोगकर्ता",
+    sessions: "सेशन",
+    avgEngagement: "औसत सहभागिता",
+    topEvents: "शीर्ष इवेंट",
+    dailyActive: "दैनिक सक्रिय उपयोगकर्ता",
+    secondsUnit: "{n}से",
+  },
   language: { label: "भाषा", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };
 
@@ -776,6 +982,7 @@ const te: Content = {
   nav: {
     coaching: "కోచింగ్",
     insight: "అంతర్దృష్టి",
+    admin: "అడ్మిన్",
     home: "హోమ్",
     journey: "నా ప్రయాణం",
     journeyBadge: "వా2",
@@ -783,6 +990,8 @@ const te: Content = {
     results: "నైపుణ్య ప్రొఫైల్",
     team: "టీమ్ పల్స్",
     assessment: "మళ్లీ తనిఖీ",
+    analytics: "నా విశ్లేషణ",
+    adminPanel: "వినియోగదారు విశ్లేషణ",
   },
   topbar: { search: "పాఠాలు & నైపుణ్యాలను వెతకండి", streakLabel: "{n}-రోజుల స్ట్రీక్" },
   profile: { name: "వినియోగదారు", role: "టీమ్ లీడ్ · ప్రో" },
@@ -793,6 +1002,8 @@ const te: Content = {
     results: "మీ ఫలితాలు",
     team: "టీమ్ పల్స్",
     assessment: "నైపుణ్య తనిఖీ",
+    analytics: "నా విశ్లేషణ",
+    admin: "అడ్మిన్ · వినియోగదారు విశ్లేషణ",
   },
   levels: { strength: "బలం", developing: "అభివృద్ధి", focus: "దృష్టి ప్రాంతం" },
   weekStates: { done: "పూర్తయింది", now: "జరుగుతోంది", next: "తదుపరి", locked: "లాక్" },
@@ -887,8 +1098,10 @@ const te: Content = {
     close: "మూసివేయండి",
   },
   cookie: {
-    message: "మిమ్మల్ని సైన్ ఇన్‌లో ఉంచడానికి మేము అవసరమైన కుకీలను ఉపయోగిస్తాము. ట్రాకింగ్ లేదు.",
-    accept: "సరే",
+    message:
+      "అవసరమైన కుకీలు మిమ్మల్ని సైన్ ఇన్‌లో ఉంచుతాయి. మీ సమ్మతితో, యాప్ వినియోగాన్ని అర్థం చేసుకోవడానికి Google Analytics కూడా ఉపయోగిస్తాము.",
+    accept: "విశ్లేషణ అంగీకరించు",
+    decline: "అవసరమైనవి మాత్రమే",
   },
   dashboard: {
     eyebrowDate: "{total}లో మాడ్యూల్ {n}",
@@ -1027,6 +1240,69 @@ const te: Content = {
     retakeMsg: "మీ స్కోరు {pct}%. తదుపరి మాడ్యూల్ అన్‌లాక్ కావాలంటే కనీసం 60% కావాలి — మళ్లీ ప్రయత్నించండి.",
     retake: "మాడ్యూల్ మళ్లీ చేయి",
     goToQuestions: "ప్రశ్నలకు వెళ్లండి",
+  },
+  analytics: {
+    eyebrow: "మీ కార్యకలాపం",
+    title: "మీరు ఎలా నేర్చుకుంటున్నారు",
+    lede: "ఇప్పటివరకు మీ సమయం, వేగం, పురోగతి — మీ కోసమే.",
+    totalTime: "మొత్తం సమయం",
+    activeDays: "క్రియాశీల రోజులు",
+    completed: "పూర్తయిన మాడ్యూల్‌లు",
+    skipped: "దాటవేసిన భాగాలు",
+    timeByModuleTitle: "మాడ్యూల్‌కు సమయం",
+    dailyTitle: "రోజువారీ కార్యకలాపం",
+    minutesUnit: "{n} నిమి",
+    noData: "ఇంకా కార్యకలాపం లేదు — ఒక మాడ్యూల్ ప్రారంభించండి, మీ గణాంకాలు ఇక్కడ కనిపిస్తాయి.",
+  },
+  admin: {
+    title: "వినియోగదారు విశ్లేషణ",
+    lede: "ప్రతి అభ్యాసకుని పురోగతి, సమాధానాలు, సమయం, దాటవేతలు.",
+    totalUsers: "వినియోగదారులు",
+    totalOnboarded: "ఆన్‌బోర్డ్ అయినవారు",
+    totalCompleted: "పూర్తయిన మాడ్యూల్‌లు",
+    totalTime: "మొత్తం సమయం",
+    searchPlaceholder: "పేరు లేదా ఇమెయిల్‌తో వెతకండి",
+    colUser: "వినియోగదారు",
+    colEmail: "ఇమెయిల్",
+    colStreak: "స్ట్రీక్",
+    colProgress: "పూర్తయింది",
+    colTime: "సమయం",
+    colLastActive: "చివరి సారి క్రియాశీలం",
+    never: "ఎప్పుడూ లేదు",
+    adminTag: "అడ్మిన్",
+    back: "← అందరు వినియోగదారులు",
+    secProgress: "మాడ్యూల్ పురోగతి",
+    secResponses: "మాడ్యూల్ సమాధానాలు",
+    secAssessment: "నైపుణ్య-తనిఖీ సమాధానాలు",
+    secOnboarding: "ఆన్‌బోర్డింగ్ సమాధానాలు",
+    secTime: "మాడ్యూల్‌కు సమయం",
+    secSkips: "దాటవేసిన భాగాలు",
+    secDaily: "రోజువారీ కార్యకలాపం",
+    statusLabel: "స్థితి",
+    scoreLabel: "స్కోరు",
+    reflectionLabel: "ఆలోచన",
+    moduleLabel: "మాడ్యూల్ {n}",
+    screenLabel: "స్క్రీన్ {n}",
+    skipLabel: "స్క్రీన్ {n}లో {kind} దాటవేశారు",
+    correctTag: "సరి",
+    wrongTag: "తప్పు",
+    noResponses: "సమాధానాలు నమోదు కాలేదు.",
+    noSkips: "దాటవేసిన భాగాలు లేవు.",
+    noUsers: "ఇంకా వినియోగదారులు లేరు.",
+    minutesUnit: "{n} నిమి",
+    valueLabel: "{n}/5 ఇచ్చారు",
+  },
+  ga: {
+    title: "ప్రోడక్ట్ విశ్లేషణ (Google Analytics)",
+    lede: "అందరి అనామక, సమగ్ర వినియోగం — వ్యక్తిగత డేటా లేదు.",
+    notConfigured: "Google Analytics ఇంకా కనెక్ట్ కాలేదు. సమగ్ర వినియోగం చూడటానికి క్రెడెన్షియల్స్ జోడించండి.",
+    activeUsers: "క్రియాశీల వినియోగదారులు",
+    newUsers: "కొత్త వినియోగదారులు",
+    sessions: "సెషన్‌లు",
+    avgEngagement: "సగటు నిమగ్నత",
+    topEvents: "టాప్ ఈవెంట్‌లు",
+    dailyActive: "రోజువారీ క్రియాశీల వినియోగదారులు",
+    secondsUnit: "{n}సె",
   },
   language: { label: "భాష", en: "English", hi: "हिन्दी", te: "తెలుగు" },
 };

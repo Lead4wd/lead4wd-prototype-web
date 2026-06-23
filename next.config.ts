@@ -8,13 +8,18 @@ const supabaseWs = supabaseUrl.replace(/^https/, "wss");
 
 // Next.js injects inline bootstrap scripts (hence 'unsafe-inline'); Turbopack
 // dev additionally needs eval + a local websocket for HMR.
+// Google Analytics (gtag.js loads from googletagmanager.com; beacons go to the
+// google-analytics.com / analytics.google.com hosts).
+const gaScript = "https://www.googletagmanager.com";
+const gaConnect = "https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com";
+
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' ${gaScript}${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
+  `img-src 'self' data: blob: ${gaScript} https://*.google-analytics.com`,
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseUrl} ${supabaseWs}${isDev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
+  `connect-src 'self' ${supabaseUrl} ${supabaseWs} ${gaConnect}${isDev ? " ws://localhost:* ws://127.0.0.1:*" : ""}`,
   "worker-src 'self' blob:",
   "frame-ancestors 'none'",
   "base-uri 'self'",

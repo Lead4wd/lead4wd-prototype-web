@@ -53,6 +53,39 @@ export type Database = {
         }
         Relationships: []
       }
+      engagement_events: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          id: number
+          kind: string
+          meta: Json | null
+          module_id: string | null
+          screen_idx: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          id?: never
+          kind: string
+          meta?: Json | null
+          module_id?: string | null
+          screen_idx?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          id?: never
+          kind?: string
+          meta?: Json | null
+          module_id?: string | null
+          screen_idx?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       locked_clusters: {
         Row: {
           id: number
@@ -186,7 +219,9 @@ export type Database = {
         Row: {
           created_at: string
           display_name: string | null
+          email: string | null
           id: string
+          is_admin: boolean
           language: string
           onboarded: boolean
           role: string
@@ -196,7 +231,9 @@ export type Database = {
         Insert: {
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id: string
+          is_admin?: boolean
           language?: string
           onboarded?: boolean
           role?: string
@@ -206,7 +243,9 @@ export type Database = {
         Update: {
           created_at?: string
           display_name?: string | null
+          email?: string | null
           id?: string
+          is_admin?: boolean
           language?: string
           onboarded?: boolean
           role?: string

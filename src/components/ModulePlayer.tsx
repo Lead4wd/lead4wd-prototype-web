@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Content } from "@/data/content";
 import type { ManagerModule, Screen } from "@/data/modules";
 import type { View } from "@/lib/progress";
-import type { QuestionAttempt } from "@/lib/data";
+import type { EngagementKind, QuestionAttempt } from "@/lib/data";
+import { gaEvent } from "@/lib/ga";
 import { fmt } from "@/lib/format";
 import { ChevronLeft, Clock, Check } from "@/components/icons";
 
@@ -18,6 +19,14 @@ export type ModuleResult = {
   attempts: QuestionAttempt[];
 };
 
+export type TrackEvent = {
+  kind: EngagementKind;
+  moduleId?: string | null;
+  screenIdx?: number | null;
+  durationMs?: number | null;
+  meta?: Record<string, unknown> | null;
+};
+
 // ===========================================================================
 // Module player — sequences a module's interactive screens, gates completion
 // on the quiz score (>=60%), and records every answer for persistence.
@@ -27,11 +36,13 @@ export default function ModulePlayer({
   module,
   go,
   onComplete,
+  onTrack,
 }: {
   c: Content;
   module: ManagerModule;
   go: (v: View) => void;
   onComplete: (result: ModuleResult) => void;
+  onTrack?: (ev: TrackEvent) => void;
 }) {
   const p = c.player;
   const screens = module.screens;
@@ -55,6 +66,52 @@ export default function ModulePlayer({
   const recordAttempt = (key: string, a: QuestionAttempt) =>
     setAttempts((prev) => ({ ...prev, [key]: a }));
 
+  // ---- engagement tracking: time per screen + skip detection ----------------
+  // Refs mirror current state so the unmount cleanup logs accurate values.
+  const enterRef = useRef<{ idx: number; t: number }>({ idx: 0, t: 0 });
+  const attemptsRef = useRef(attempts);
+  const screensRef = useRef(screens);
+  // Keep refs in sync after each render so the unmount cleanup logs latest values.
+  useEffect(() => {
+    attemptsRef.current = attempts;
+    screensRef.current = screens;
+  });
+
+  const logLeave = (leavingIdx: number) => {
+    const s = screensRef.current[leavingIdx];
+    if (!s) return;
+    onTrack?.({
+      kind: "screen_view",
+      moduleId: module.id,
+      screenIdx: leavingIdx,
+      durationMs: Date.now() - enterRef.current.t,
+      meta: { kind: s.kind },
+    });
+    const interactive = s.kind === "dragdrop" || s.kind === "scenario" || s.kind === "selfcheck";
+    const answered = Object.keys(attemptsRef.current).some((k) => k.startsWith(`${leavingIdx}:`));
+    if (interactive && !answered) {
+      onTrack?.({ kind: "screen_skip", moduleId: module.id, screenIdx: leavingIdx, meta: { kind: s.kind } });
+      gaEvent("screen_skipped", { module_id: module.id, screen_idx: leavingIdx });
+    }
+  };
+
+  // Module start + log the final screen's time on unmount (also captures abandons).
+  useEffect(() => {
+    enterRef.current = { idx: 0, t: Date.now() };
+    onTrack?.({ kind: "module_start", moduleId: module.id });
+    gaEvent("module_started", { module_id: module.id });
+    return () => logLeave(enterRef.current.idx);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // On screen change, log time spent on the screen we just left.
+  useEffect(() => {
+    if (enterRef.current.idx === idx) return;
+    logLeave(enterRef.current.idx);
+    enterRef.current = { idx, t: Date.now() };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx]);
+
   const retake = () => {
     setIdx(0);
     setQuiz(null);
@@ -63,11 +120,14 @@ export default function ModulePlayer({
   };
 
   const complete = () => {
+    const finalPct = hasQuiz ? scorePct : 100;
+    onTrack?.({ kind: "module_complete", moduleId: module.id, meta: { score_pct: finalPct } });
+    gaEvent("module_completed", { module_id: module.id, score_pct: finalPct });
     onComplete({
       reflection,
       quizCorrect: quiz?.correct ?? 0,
       quizTotal: quiz?.total ?? 0,
-      scorePct: hasQuiz ? scorePct : 100,
+      scorePct: finalPct,
       attempts: Object.values(attempts),
     });
   };
@@ -103,7 +163,10 @@ export default function ModulePlayer({
           p={p}
           reflection={reflection}
           setReflection={setReflection}
-          onQuiz={(correct, total) => setQuiz({ correct, total })}
+          onQuiz={(correct, total) => {
+            setQuiz({ correct, total });
+            gaEvent("quiz_scored", { module_id: module.id, correct, total });
+          }}
           onAttempt={recordAttempt}
         />
 

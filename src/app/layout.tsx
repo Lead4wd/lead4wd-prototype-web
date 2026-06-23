@@ -7,6 +7,7 @@ import {
   Noto_Sans_Telugu,
 } from "next/font/google";
 import "./globals.css";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 // ── Display / headings ────────────────────────────────────────────────────
 // Variable font; load the same weight range as the mockup's Google Fonts URL:
@@ -73,7 +74,10 @@ export default function RootLayout({
       data-theme="evergreen"
       className={`${display.variable} ${body.variable} ${mono.variable} ${devanagari.variable} ${telugu.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <GoogleAnalytics />
+      </body>
     </html>
   );
 }

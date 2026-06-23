@@ -2,42 +2,36 @@
 
 import { useEffect, useState } from "react";
 import type { Content } from "@/data/content";
+import { getConsent, setConsent } from "@/lib/consent";
 
-const KEY = "lead4wd_cookie_ok";
-
-// Lightweight consent notice for the essential auth cookies that keep users
-// signed in. Dismissal is remembered in localStorage.
+// Consent banner for the optional Google Analytics layer. Essential auth cookies
+// always apply; Analytics loads only on Accept. Choice is remembered.
 export default function CookieConsent({ c }: { c: Content }) {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    /* eslint-disable react-hooks/set-state-in-effect */
-    try {
-      setShow(localStorage.getItem(KEY) !== "1");
-    } catch {
-      setShow(true);
-    }
-    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShow(getConsent() === "unset");
   }, []);
 
   if (!show) return null;
 
+  const choose = (v: "accepted" | "declined") => {
+    setConsent(v);
+    setShow(false);
+  };
+
   return (
     <div className="cookie-bar">
       <span>{c.cookie.message}</span>
-      <button
-        className="btn btn-pri"
-        onClick={() => {
-          try {
-            localStorage.setItem(KEY, "1");
-          } catch {
-            /* ignore */
-          }
-          setShow(false);
-        }}
-      >
-        {c.cookie.accept}
-      </button>
+      <div className="cookie-actions">
+        <button className="btn btn-ghost" onClick={() => choose("declined")}>
+          {c.cookie.decline}
+        </button>
+        <button className="btn btn-pri" onClick={() => choose("accepted")}>
+          {c.cookie.accept}
+        </button>
+      </div>
     </div>
   );
 }

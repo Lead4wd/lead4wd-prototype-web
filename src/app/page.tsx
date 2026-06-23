@@ -15,12 +15,13 @@ import {
   saveAssessmentAnswers,
   saveModuleCompletion,
   saveOnboardingAnswers,
+  track,
   updateProfile,
   type AssessmentQuestion,
   type OnboardingQuestion,
   type ProfileRow,
 } from "@/lib/data";
-import type { ModuleResult } from "@/components/ModulePlayer";
+import type { ModuleResult, TrackEvent } from "@/components/ModulePlayer";
 import Onboarding from "@/components/Onboarding";
 import Auth from "@/components/Auth";
 import FirstRun from "@/components/FirstRun";
@@ -101,10 +102,12 @@ export default function Home() {
         ({
           id: u.id,
           display_name: u.email?.split("@")[0] ?? null,
+          email: u.email,
           role: CONTENT.en.profile.role,
           language: "en",
           streak: 0,
           onboarded: false,
+          is_admin: false,
         } satisfies ProfileRow);
       if (!active) return;
       setProfile(prof);
@@ -198,6 +201,10 @@ export default function Home() {
     setProfile((p) => (p ? { ...p, ...patch } : p));
   };
 
+  const handleTrack = (ev: TrackEvent) => {
+    if (user) void track(user.id, ev);
+  };
+
   // ---- render ----
   if (phase === "loading") return <Splash />;
   if (phase === "intro") return <Onboarding c={c} onDone={() => setPhase("auth")} />;
@@ -230,6 +237,7 @@ export default function Home() {
       onCompleteModule={handleCompleteModule}
       onSubmitAssessment={handleSubmitAssessment}
       onProfileUpdated={handleProfileUpdated}
+      onTrack={handleTrack}
       initialAccountOpen={recoveryMode}
     />
   );

@@ -13,7 +13,9 @@ export type View =
   | "lesson"
   | "results"
   | "team"
-  | "assessment";
+  | "assessment"
+  | "analytics"
+  | "admin";
 
 export type Progress = {
   completedModules: string[]; // module ids

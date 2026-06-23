@@ -8,10 +8,12 @@ import { fmt } from "@/lib/format";
 import { Chevron, Check, Search, Menu } from "@/components/icons";
 import Dashboard from "@/components/views/Dashboard";
 import Journey from "@/components/views/Journey";
-import ModulePlayer, { type ModuleResult } from "@/components/ModulePlayer";
+import ModulePlayer, { type ModuleResult, type TrackEvent } from "@/components/ModulePlayer";
 import Assessment from "@/components/views/Assessment";
 import SkillsProfile from "@/components/views/SkillsProfile";
 import TeamPulse from "@/components/views/TeamPulse";
+import Analytics from "@/components/views/Analytics";
+import AdminPanel from "@/components/views/AdminPanel";
 import AccountSettings from "@/components/AccountSettings";
 import CookieConsent from "@/components/CookieConsent";
 import type { AssessmentQuestion, ProfileRow } from "@/lib/data";
@@ -92,9 +94,27 @@ const NAV: NavSection[] = [
           </svg>
         ),
       },
+      {
+        view: "analytics",
+        key: "analytics",
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M4 19V5" />
+            <path d="M4 15l4-4 3 3 5-7 4 5" />
+          </svg>
+        ),
+      },
     ],
   },
 ];
+
+const ADMIN_ICON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+    <circle cx="12" cy="8" r="3.4" />
+    <path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6" />
+    <path d="M19 4l1 1.6L21.8 6l-1.3 1.2.3 1.8-1.8-.9-1.8.9.3-1.8L16.2 6l1.8-.4z" />
+  </svg>
+);
 
 // Build the searchable index (pages + skills + every module) for a language.
 function searchIndex(c: Content, modules: ManagerModule[]): { label: string; view: View; tag: string }[] {
@@ -105,6 +125,7 @@ function searchIndex(c: Content, modules: ManagerModule[]): { label: string; vie
     { label: c.nav.results, view: "results", tag: c.nav.insight },
     { label: c.nav.team, view: "team", tag: c.nav.insight },
     { label: c.nav.assessment, view: "assessment", tag: c.nav.insight },
+    { label: c.nav.analytics, view: "analytics", tag: c.nav.insight },
   ];
   const skills = SKILL_ORDER.map((id) => ({
     label: c.skillNames[id],
@@ -128,6 +149,7 @@ export default function AppShell({
   onCompleteModule,
   onSubmitAssessment,
   onProfileUpdated,
+  onTrack,
   initialAccountOpen = false,
 }: {
   c: Content;
@@ -142,6 +164,7 @@ export default function AppShell({
   onCompleteModule: (moduleId: string, result: ModuleResult) => void;
   onSubmitAssessment: (answers: (number | null)[], scores: Record<SkillId, number>) => void;
   onProfileUpdated: (patch: Partial<ProfileRow>) => void;
+  onTrack?: (ev: TrackEvent) => void;
   initialAccountOpen?: boolean;
 }) {
   const [view, setView] = useState<View>("dashboard");
@@ -215,6 +238,19 @@ export default function AppShell({
               ))}
             </Fragment>
           ))}
+
+          {profile.is_admin && (
+            <Fragment>
+              <div className="navlbl">{c.nav.admin}</div>
+              <button
+                className={`navlink ${view === "admin" ? "on" : ""}`}
+                onClick={() => go("admin")}
+              >
+                {ADMIN_ICON}
+                {c.nav.adminPanel}
+              </button>
+            </Fragment>
+          )}
 
           <div className="spacer" />
           <button className="profile" onClick={() => setAccountOpen(true)} aria-label={c.account.title}>
@@ -313,6 +349,7 @@ export default function AppShell({
                     onCompleteModule(cur.id, result);
                     go("dashboard");
                   }}
+                  onTrack={onTrack}
                 />
               ) : (
                 <section className="view on">
@@ -332,6 +369,8 @@ export default function AppShell({
               <SkillsProfile c={c} scores={progress.scores} go={go} onRetake={() => go("assessment")} />
             )}
             {view === "team" && <TeamPulse c={c} />}
+            {view === "analytics" && <Analytics c={c} userId={profile.id} modules={modules} />}
+            {view === "admin" && profile.is_admin && <AdminPanel c={c} modules={modules} />}
             {view === "assessment" && (
               <Assessment
                 c={c}
