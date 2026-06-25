@@ -1,28 +1,72 @@
 // ============================================================================
-// Lead4wd — Supabase data access (content + per-user state)
+// Lead4wd — data access via the REST API layer (lead4wd-api).
 // ----------------------------------------------------------------------------
-// Content (modules, clusters, questions) is fetched from the DB; per-user state
-// (profile, answers, module progress, question attempts) is read/written here.
-// The pure derivations stay in progress.ts.
+// The browser no longer talks to Supabase for DATA — it calls the API, which
+// validates the Supabase JWT and forwards it (RLS still applies). Auth itself
+// (login/signup/session) still uses the Supabase browser client; we read its
+// access token here to authorize API calls.
 // ============================================================================
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { DEFAULT_SCORES, SKILL_ORDER, type SkillId } from "@/data/content";
 import type { ManagerModule, Screen } from "@/data/modules";
 import type { Progress } from "@/lib/progress";
 
-// Surface failed reads/writes in the console — supabase-js returns errors
-// instead of throwing, so without this they vanish silently.
-function logErr(op: string, error: { message: string } | null) {
-  if (error) console.error(`[lead4wd] ${op}: ${error.message}`);
+const API_BASE = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+
+function logErr(op: string, detail: unknown) {
+  console.error(`[lead4wd] ${op}:`, detail);
+}
+
+async function authHeaders(): Promise<Record<string, string>> {
+  try {
+    const { data } = await getSupabaseBrowserClient().auth.getSession();
+    const token = data.session?.access_token;
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  } catch {
+    return {};
+  }
+}
+
+async function apiGet<T>(path: string): Promise<T | null> {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, { headers: await authHeaders() });
+    if (!res.ok) {
+      logErr(`GET ${path}`, res.status);
+      return null;
+    }
+    return (await res.json()) as T;
+  } catch (e) {
+    logErr(`GET ${path}`, e);
+    return null;
+  }
+}
+
+async function apiSend(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string, body?: unknown): Promise<boolean> {
+  try {
+    // Only set a JSON content-type when there's actually a body — otherwise a
+    // bodyless DELETE trips the server's "empty JSON body" guard.
+    const headers = await authHeaders();
+    if (body !== undefined) headers["Content-Type"] = "application/json";
+    const res = await fetch(`${API_BASE}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    if (!res.ok) {
+      logErr(`${method} ${path}`, res.status);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    logErr(`${method} ${path}`, e);
+    return false;
+  }
 }
 
 // ---------- content ----------
 export async function fetchModules(): Promise<ManagerModule[]> {
-  const sb = getSupabaseBrowserClient();
-  const { data, error } = await sb.from("modules").select("*").order("sort_order");
-  logErr("fetchModules", error);
-  if (error || !data) return [];
-  return data.map((r) => ({
+  const data = await apiGet<Array<Omit<ManagerModule, "screens"> & { screens: unknown }>>("/modules");
+  return (data ?? []).map((r) => ({
     id: r.id,
     skill: r.skill as SkillId,
     cluster: r.cluster,
@@ -34,36 +78,20 @@ export async function fetchModules(): Promise<ManagerModule[]> {
 }
 
 export async function fetchLockedClusters(): Promise<string[]> {
-  const sb = getSupabaseBrowserClient();
-  const { data, error } = await sb.from("locked_clusters").select("name").order("sort_order");
-  logErr("fetchLockedClusters", error);
-  return (data ?? []).map((r) => r.name);
+  return (await apiGet<string[]>("/locked-clusters")) ?? [];
 }
 
 export type AssessmentQuestion = { idx: number; skill: SkillId; text: string };
 export async function fetchAssessmentQuestions(lang: string): Promise<AssessmentQuestion[]> {
-  const sb = getSupabaseBrowserClient();
-  const { data, error } = await sb.from("assessment_questions").select("*").order("idx");
-  logErr("fetchAssessmentQuestions", error);
-  return (data ?? []).map((r) => {
-    const t = r.text_i18n as Record<string, string>;
-    return { idx: r.idx, skill: r.skill as SkillId, text: t[lang] ?? t.en };
-  });
+  return (await apiGet<AssessmentQuestion[]>(`/questions/assessment?lang=${encodeURIComponent(lang)}`)) ?? [];
 }
 
 export type OnboardingQuestion = { idx: number; text: string; options: string[] };
 export async function fetchOnboardingQuestions(lang: string): Promise<OnboardingQuestion[]> {
-  const sb = getSupabaseBrowserClient();
-  const { data, error } = await sb.from("onboarding_questions").select("*").order("idx");
-  logErr("fetchOnboardingQuestions", error);
-  return (data ?? []).map((r) => {
-    const t = r.text_i18n as Record<string, string>;
-    const o = r.options_i18n as Record<string, string[]>;
-    return { idx: r.idx, text: t[lang] ?? t.en, options: o[lang] ?? o.en };
-  });
+  return (await apiGet<OnboardingQuestion[]>(`/questions/onboarding?lang=${encodeURIComponent(lang)}`)) ?? [];
 }
 
-// ---------- scoring (derive skill scores from raw answers) ----------
+// ---------- scoring (pure — also used client-side for immediate results) ------
 export function computeScores(
   answers: { question_idx: number; value: number | null }[],
   questions: { idx: number; skill: SkillId }[]
@@ -95,84 +123,37 @@ export type ProfileRow = {
   is_admin: boolean;
 };
 
-export async function loadProfile(userId: string): Promise<ProfileRow | null> {
-  const sb = getSupabaseBrowserClient();
-  const { data, error } = await sb.from("profiles").select("*").eq("id", userId).maybeSingle();
-  logErr("loadProfile", error);
-  return data
-    ? {
-        id: data.id,
-        display_name: data.display_name,
-        email: data.email,
-        role: data.role,
-        language: data.language,
-        streak: data.streak,
-        onboarded: data.onboarded,
-        is_admin: data.is_admin,
-      }
-    : null;
+export async function loadProfile(_userId: string): Promise<ProfileRow | null> {
+  return apiGet<ProfileRow>("/me/profile");
 }
 
 export async function updateProfile(
-  userId: string,
+  _userId: string,
   patch: Partial<Pick<ProfileRow, "display_name" | "role" | "language" | "onboarded" | "streak">>
 ): Promise<void> {
-  const sb = getSupabaseBrowserClient();
-  // Upsert, not update: if the signup trigger ever failed to create the row,
-  // a plain update would silently affect 0 rows (e.g. onboarded never sticks).
-  const { error } = await sb
-    .from("profiles")
-    .upsert({ id: userId, ...patch, updated_at: new Date().toISOString() }, { onConflict: "id" });
-  logErr("updateProfile", error);
+  await apiSend("PATCH", "/me/profile", patch);
 }
 
 // ---------- per-user progress ----------
-/** Load the user's full Progress object (mirrors the legacy localStorage shape). */
-export async function loadUserState(userId: string): Promise<Progress> {
-  const sb = getSupabaseBrowserClient();
-  const [profileR, modR, ansR, qR] = await Promise.all([
-    sb.from("profiles").select("streak").eq("id", userId).maybeSingle(),
-    sb.from("module_progress").select("*").eq("user_id", userId),
-    sb.from("assessment_answers").select("question_idx, value").eq("user_id", userId),
-    sb.from("assessment_questions").select("idx, skill"),
-  ]);
-
-  logErr("loadUserState/profile", profileR.error);
-  logErr("loadUserState/module_progress", modR.error);
-  logErr("loadUserState/assessment_answers", ansR.error);
-
-  const mods = modR.data ?? [];
-  const completedModules = mods.filter((m) => m.status === "completed").map((m) => m.module_id);
-  const actionsTried = mods.filter((m) => (m.reflection ?? "").trim().length > 0).map((m) => m.module_id);
-  const reflections: Record<string, string> = {};
-  mods.forEach((m) => {
-    if (m.reflection) reflections[m.module_id] = m.reflection;
-  });
-
-  const questions = (qR.data ?? []).map((q) => ({ idx: q.idx, skill: q.skill as SkillId }));
-  const scores = computeScores(ansR.data ?? [], questions);
-
-  return {
-    completedModules,
-    actionsTried,
-    reflections,
-    streak: profileR.data?.streak ?? 0,
-    scores,
-  };
+export async function loadUserState(_userId: string): Promise<Progress> {
+  const data = await apiGet<Progress>("/me/state");
+  return (
+    data ?? {
+      completedModules: [],
+      actionsTried: [],
+      reflections: {},
+      streak: 0,
+      scores: computeScores([], []),
+    }
+  );
 }
 
-export async function saveOnboardingAnswers(userId: string, answers: (number | null)[]): Promise<void> {
-  const sb = getSupabaseBrowserClient();
-  const rows = answers.map((answer_idx, question_idx) => ({ user_id: userId, question_idx, answer_idx }));
-  const { error } = await sb.from("onboarding_answers").upsert(rows, { onConflict: "user_id,question_idx" });
-  logErr("saveOnboardingAnswers", error);
+export async function saveOnboardingAnswers(_userId: string, answers: (number | null)[]): Promise<void> {
+  await apiSend("PUT", "/me/onboarding-answers", { answers });
 }
 
-export async function saveAssessmentAnswers(userId: string, answers: (number | null)[]): Promise<void> {
-  const sb = getSupabaseBrowserClient();
-  const rows = answers.map((value, question_idx) => ({ user_id: userId, question_idx, value }));
-  const { error } = await sb.from("assessment_answers").upsert(rows, { onConflict: "user_id,question_idx" });
-  logErr("saveAssessmentAnswers", error);
+export async function saveAssessmentAnswers(_userId: string, answers: (number | null)[]): Promise<void> {
+  await apiSend("PUT", "/me/assessment-answers", { answers });
 }
 
 export type QuestionAttempt = {
@@ -183,9 +164,8 @@ export type QuestionAttempt = {
   is_correct: boolean | null;
 };
 
-/** Persist a completed module: aggregate progress + per-question attempts + streak bump. */
 export async function saveModuleCompletion(
-  userId: string,
+  _userId: string,
   moduleId: string,
   data: {
     quizCorrect: number;
@@ -197,46 +177,18 @@ export async function saveModuleCompletion(
     alreadyCompleted: boolean;
   }
 ): Promise<void> {
-  const sb = getSupabaseBrowserClient();
-  const { error: progressErr } = await sb.from("module_progress").upsert(
-    {
-      user_id: userId,
-      module_id: moduleId,
-      status: "completed",
-      quiz_correct: data.quizCorrect,
-      quiz_total: data.quizTotal,
-      score_pct: data.scorePct,
-      reflection: data.reflection.trim() || null,
-      updated_at: new Date().toISOString(),
-      completed_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,module_id" }
-  );
-  logErr("saveModuleCompletion/module_progress", progressErr);
-
-  if (data.attempts.length) {
-    // Replace prior attempts for this module so retakes overwrite cleanly.
-    const { error: delErr } = await sb.from("question_attempts").delete().eq("user_id", userId).eq("module_id", moduleId);
-    logErr("saveModuleCompletion/clear_attempts", delErr);
-    const { error: insErr } = await sb.from("question_attempts").insert(
-      data.attempts.map((a) => ({ ...a, user_id: userId, module_id: moduleId }))
-    );
-    logErr("saveModuleCompletion/insert_attempts", insErr);
-  }
-
-  if (!data.alreadyCompleted) {
-    await updateProfile(userId, { streak: data.newStreak });
-  }
+  await apiSend("POST", `/me/modules/${encodeURIComponent(moduleId)}/complete`, data);
 }
 
-// ============================================================================
-// Engagement tracking (time-on-screen + skips) — feeds the analytics views.
-// ============================================================================
+export async function deleteAccount(): Promise<boolean> {
+  return apiSend("DELETE", "/me/account");
+}
+
+// ---------- engagement tracking ----------
 export type EngagementKind = "screen_view" | "screen_skip" | "module_start" | "module_complete";
 
-/** Log one engagement event. Fire-and-forget from callers; errors are logged. */
 export async function track(
-  userId: string,
+  _userId: string,
   ev: {
     kind: EngagementKind;
     moduleId?: string | null;
@@ -245,61 +197,19 @@ export async function track(
     meta?: Record<string, unknown> | null;
   }
 ): Promise<void> {
-  const sb = getSupabaseBrowserClient();
-  const { error } = await sb.from("engagement_events").insert({
-    user_id: userId,
+  await apiSend("POST", "/me/events", {
     kind: ev.kind,
-    module_id: ev.moduleId ?? null,
-    screen_idx: ev.screenIdx ?? null,
-    duration_ms:
-      ev.durationMs != null ? Math.min(Math.max(Math.round(ev.durationMs), 0), 86_400_000) : null,
-    meta: (ev.meta ?? null) as never,
+    moduleId: ev.moduleId ?? null,
+    screenIdx: ev.screenIdx ?? null,
+    durationMs: ev.durationMs ?? null,
+    meta: ev.meta ?? null,
   });
-  logErr("track", error);
 }
 
-// ---------- shared aggregation (pure) ----------
-type RawEvent = {
-  kind: string;
-  module_id: string | null;
-  screen_idx: number | null;
-  duration_ms: number | null;
-  created_at: string;
-};
-
+// ---------- analytics (shapes returned ready-to-render by the API) ------------
 export type DailyPoint = { date: string; ms: number; events: number };
 export type ModuleTime = { moduleId: string; ms: number };
 
-function aggregateDaily(events: RawEvent[]): DailyPoint[] {
-  const byDay = new Map<string, { ms: number; events: number }>();
-  for (const e of events) {
-    const date = e.created_at.slice(0, 10);
-    const cur = byDay.get(date) ?? { ms: 0, events: 0 };
-    cur.ms += e.duration_ms ?? 0;
-    cur.events += 1;
-    byDay.set(date, cur);
-  }
-  return [...byDay.entries()]
-    .map(([date, v]) => ({ date, ...v }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-}
-
-function aggregateByModule(events: RawEvent[]): ModuleTime[] {
-  const byMod = new Map<string, number>();
-  for (const e of events) {
-    if (!e.module_id || !e.duration_ms) continue;
-    byMod.set(e.module_id, (byMod.get(e.module_id) ?? 0) + e.duration_ms);
-  }
-  return [...byMod.entries()]
-    .map(([moduleId, ms]) => ({ moduleId, ms }))
-    .sort((a, b) => b.ms - a.ms);
-}
-
-const sumMs = (events: RawEvent[]) => events.reduce((a, e) => a + (e.duration_ms ?? 0), 0);
-
-// ============================================================================
-// User-facing analytics — the signed-in user's own stats (RLS: owner rows).
-// ============================================================================
 export type UserAnalytics = {
   totalTimeMs: number;
   activeDays: number;
@@ -310,35 +220,20 @@ export type UserAnalytics = {
   timeByModule: ModuleTime[];
 };
 
-export async function loadUserAnalytics(userId: string): Promise<UserAnalytics> {
-  const sb = getSupabaseBrowserClient();
-  const [evR, modR] = await Promise.all([
-    sb
-      .from("engagement_events")
-      .select("kind, module_id, screen_idx, duration_ms, created_at")
-      .eq("user_id", userId),
-    sb.from("module_progress").select("status").eq("user_id", userId),
-  ]);
-  logErr("loadUserAnalytics/events", evR.error);
-  logErr("loadUserAnalytics/modules", modR.error);
+const EMPTY_ANALYTICS: UserAnalytics = {
+  totalTimeMs: 0,
+  activeDays: 0,
+  completed: 0,
+  started: 0,
+  skips: 0,
+  daily: [],
+  timeByModule: [],
+};
 
-  const events = (evR.data ?? []) as RawEvent[];
-  const daily = aggregateDaily(events);
-  const mods = modR.data ?? [];
-  return {
-    totalTimeMs: sumMs(events),
-    activeDays: daily.length,
-    completed: mods.filter((m) => m.status === "completed").length,
-    started: mods.length,
-    skips: events.filter((e) => e.kind === "screen_skip").length,
-    daily,
-    timeByModule: aggregateByModule(events),
-  };
+export async function loadUserAnalytics(_userId: string): Promise<UserAnalytics> {
+  return (await apiGet<UserAnalytics>("/me/analytics")) ?? EMPTY_ANALYTICS;
 }
 
-// ============================================================================
-// Admin analytics — all users (RLS: private.is_admin() grants read on all rows).
-// ============================================================================
 export type AdminUserSummary = {
   id: string;
   displayName: string | null;
@@ -359,51 +254,12 @@ export type AdminOverview = {
 };
 
 export async function fetchAdminOverview(): Promise<AdminOverview> {
-  const sb = getSupabaseBrowserClient();
-  const [profR, modR, evR] = await Promise.all([
-    sb.from("profiles").select("id, display_name, email, is_admin, streak, onboarded, created_at"),
-    sb.from("module_progress").select("user_id, status, updated_at"),
-    sb.from("engagement_events").select("user_id, kind, duration_ms, created_at"),
-  ]);
-  logErr("fetchAdminOverview/profiles", profR.error);
-  logErr("fetchAdminOverview/modules", modR.error);
-  logErr("fetchAdminOverview/events", evR.error);
-
-  const mods = modR.data ?? [];
-  const evs = evR.data ?? [];
-
-  const users: AdminUserSummary[] = (profR.data ?? []).map((p) => {
-    const myMods = mods.filter((m) => m.user_id === p.id);
-    const myEvs = evs.filter((e) => e.user_id === p.id);
-    const lastEv = myEvs.reduce<string | null>((max, e) => (!max || e.created_at > max ? e.created_at : max), null);
-    const lastMod = myMods.reduce<string | null>((max, m) => (!max || m.updated_at > max ? m.updated_at : max), null);
-    const lastActive = [lastEv, lastMod].filter(Boolean).sort().pop() ?? null;
-    return {
-      id: p.id,
-      displayName: p.display_name,
-      email: p.email,
-      isAdmin: p.is_admin,
-      streak: p.streak,
-      onboarded: p.onboarded,
-      completed: myMods.filter((m) => m.status === "completed").length,
-      started: myMods.length,
-      skips: myEvs.filter((e) => e.kind === "screen_skip").length,
-      totalTimeMs: myEvs.reduce((a, e) => a + (e.duration_ms ?? 0), 0),
-      lastActive,
-    };
-  });
-  // Most recently active first.
-  users.sort((a, b) => (b.lastActive ?? "").localeCompare(a.lastActive ?? ""));
-
-  return {
-    users,
-    totals: {
-      users: users.length,
-      onboarded: users.filter((u) => u.onboarded).length,
-      completedModules: users.reduce((a, u) => a + u.completed, 0),
-      totalTimeMs: users.reduce((a, u) => a + u.totalTimeMs, 0),
-    },
-  };
+  return (
+    (await apiGet<AdminOverview>("/admin/overview")) ?? {
+      users: [],
+      totals: { users: 0, onboarded: 0, completedModules: 0, totalTimeMs: 0 },
+    }
+  );
 }
 
 export type AdminModuleRow = {
@@ -428,51 +284,22 @@ export type AdminUserDetail = {
   totalTimeMs: number;
 };
 
-export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDetail> {
-  const sb = getSupabaseBrowserClient();
-  const [modR, atR, asR, obR, evR] = await Promise.all([
-    sb.from("module_progress").select("*").eq("user_id", userId),
-    sb.from("question_attempts").select("*").eq("user_id", userId).order("answered_at"),
-    sb.from("assessment_answers").select("question_idx, value").eq("user_id", userId).order("question_idx"),
-    sb.from("onboarding_answers").select("question_idx, answer_idx").eq("user_id", userId).order("question_idx"),
-    sb
-      .from("engagement_events")
-      .select("kind, module_id, screen_idx, duration_ms, created_at, meta")
-      .eq("user_id", userId)
-      .order("created_at"),
-  ]);
-  logErr("fetchAdminUserDetail/modules", modR.error);
-  logErr("fetchAdminUserDetail/attempts", atR.error);
-  logErr("fetchAdminUserDetail/assessment", asR.error);
-  logErr("fetchAdminUserDetail/onboarding", obR.error);
-  logErr("fetchAdminUserDetail/events", evR.error);
+const EMPTY_DETAIL: AdminUserDetail = {
+  modules: [],
+  attempts: [],
+  assessment: [],
+  onboarding: [],
+  daily: [],
+  timeByModule: [],
+  skips: [],
+  totalTimeMs: 0,
+};
 
-  const events = (evR.data ?? []) as (RawEvent & { meta: { kind?: string } | null })[];
-  return {
-    modules: (modR.data ?? []) as AdminModuleRow[],
-    attempts: (atR.data ?? []).map((a) => ({
-      screen_idx: a.screen_idx,
-      kind: a.kind,
-      prompt: a.prompt,
-      response: a.response,
-      is_correct: a.is_correct,
-      module_id: a.module_id,
-      answered_at: a.answered_at,
-    })),
-    assessment: asR.data ?? [],
-    onboarding: obR.data ?? [],
-    daily: aggregateDaily(events),
-    timeByModule: aggregateByModule(events),
-    skips: events
-      .filter((e) => e.kind === "screen_skip")
-      .map((e) => ({ moduleId: e.module_id, screenIdx: e.screen_idx, kind: e.meta?.kind ?? null, at: e.created_at })),
-    totalTimeMs: sumMs(events),
-  };
+export async function fetchAdminUserDetail(userId: string): Promise<AdminUserDetail> {
+  return (await apiGet<AdminUserDetail>(`/admin/users/${encodeURIComponent(userId)}`)) ?? EMPTY_DETAIL;
 }
 
-// ============================================================================
-// Google Analytics aggregate (served by /api/ga/summary; server holds the key).
-// ============================================================================
+// ---------- Google Analytics aggregate ----------
 export type GaSummary =
   | { configured: false }
   | {
@@ -487,11 +314,5 @@ export type GaSummary =
     };
 
 export async function fetchGaSummary(scope: "user" | "admin"): Promise<GaSummary> {
-  try {
-    const res = await fetch(`/api/ga/summary?scope=${scope}`, { credentials: "same-origin" });
-    if (!res.ok) return { configured: false };
-    return (await res.json()) as GaSummary;
-  } catch {
-    return { configured: false };
-  }
+  return (await apiGet<GaSummary>(`/analytics/ga?scope=${scope}`)) ?? { configured: false };
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Content, LanguageCode } from "@/data/content";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
-import { updateProfile, type ProfileRow } from "@/lib/data";
+import { updateProfile, deleteAccount as apiDeleteAccount, type ProfileRow } from "@/lib/data";
 
 // Account settings modal: edit details, change password, delete account, log out.
 export default function AccountSettings({
@@ -66,13 +66,13 @@ export default function AccountSettings({
     if (confirm !== ac.confirmWord) return;
     setBusy(true);
     setMsg(null);
-    const { error } = await sb.functions.invoke("delete-account", { method: "POST" });
-    if (error) {
-      setMsg(error.message);
+    const ok = await apiDeleteAccount();
+    if (!ok) {
+      setMsg(ac.dangerDesc);
       setBusy(false);
       return;
     }
-    // The auth user is gone — the server call may 403; clear the local session regardless.
+    // The auth user is gone — clear the local session (onAuthStateChange routes out).
     try {
       await sb.auth.signOut();
     } catch {

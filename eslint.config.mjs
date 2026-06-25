@@ -13,6 +13,14 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // Allow intentionally-unused args/vars when prefixed with _ (e.g. data-layer
+    // functions that keep a userId param for call-site symmetry but resolve the
+    // user from the auth token server-side).
+    rules: {
+      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+    },
+  },
 ]);
 
 export default eslintConfig;
