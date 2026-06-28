@@ -439,6 +439,14 @@ button.profile:hover{background:var(--surface-2)}
 .tag-bad{color:#a3331f;background:color-mix(in srgb,#a3331f 12%,transparent)}
 .adm-skips{margin:6px 0 0;padding-left:18px;font-size:13.5px;color:var(--ink);line-height:1.7}
 
+/* one-statement-at-a-time sort screen */
+.sort-progress{font-size:12px;color:var(--ink-faint);letter-spacing:.05em;margin-bottom:12px}
+.sort-item.sort-single{flex-direction:column;align-items:stretch;gap:16px;padding:22px}
+.sort-item.sort-single .sort-text{font-size:17px;line-height:1.4}
+.sort-item.sort-single .sort-btns{justify-content:flex-start}
+.sort-nav{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+.sort-chosen{flex:0 0 auto;font-size:12px;font-weight:600;color:var(--ink-faint)}
+
 @media(max-width:760px){
   .an-stats,.ga-stats{grid-template-columns:repeat(2,1fr)}
   .admin-row{grid-template-columns:1.6fr .7fr 1fr}

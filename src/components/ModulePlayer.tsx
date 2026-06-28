@@ -343,14 +343,15 @@ function ScreenDragDrop({
   onResult: (correct: number, total: number) => void;
   onAttempt: (key: string, a: QuestionAttempt) => void;
 }) {
+  const total = screen.items.length;
   const [picks, setPicks] = useState<Record<number, "left" | "right">>({});
+  const [step, setStep] = useState(0);
   const [checked, setChecked] = useState(false);
-  const allPicked = screen.items.every((_, i) => picks[i]);
   const correctCount = screen.items.filter((it, i) => picks[i] === it.side).length;
 
   const check = () => {
     setChecked(true);
-    onResult(correctCount, screen.items.length);
+    onResult(correctCount, total);
     screen.items.forEach((it, i) => {
       const side = picks[i];
       onAttempt(`${screenIdx}:${i}`, {
@@ -363,44 +364,66 @@ function ScreenDragDrop({
     });
   };
 
+  // After checking: show the full list with right/wrong + the score.
+  if (checked) {
+    return (
+      <div className="screen">
+        <h2 className="screen-h">{screen.title}</h2>
+        <p className="screen-prompt">{screen.prompt}</p>
+        <div className="sort-list">
+          {screen.items.map((it, i) => {
+            const right = picks[i] === it.side;
+            return (
+              <div key={i} className={`sort-item ${right ? "ok" : "bad"}`}>
+                <span className="sort-text">{it.text}</span>
+                <span className="sort-chosen">{picks[i] === "left" ? screen.leftLabel : screen.rightLabel}</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="sort-summary">
+          {p.correct}: {correctCount} / {total}
+        </p>
+      </div>
+    );
+  }
+
+  // One statement at a time.
+  const it = screen.items[step];
+  const picked = picks[step];
+  const isLastItem = step === total - 1;
   return (
     <div className="screen">
       <h2 className="screen-h">{screen.title}</h2>
       <p className="screen-prompt">{screen.prompt}</p>
+      <div className="sort-progress mono">{fmt(p.counter, { n: step + 1, total })}</div>
 
-      <div className="sort-list">
-        {screen.items.map((it, i) => {
-          const pick = picks[i];
-          const right = pick === it.side;
-          return (
-            <div key={i} className={`sort-item ${checked ? (right ? "ok" : "bad") : ""}`}>
-              <span className="sort-text">{it.text}</span>
-              <div className="sort-btns">
-                {(["left", "right"] as const).map((side) => (
-                  <button
-                    key={side}
-                    className={`sort-btn ${pick === side ? "on" : ""}`}
-                    disabled={checked}
-                    onClick={() => setPicks((prev) => ({ ...prev, [i]: side }))}
-                  >
-                    {side === "left" ? screen.leftLabel : screen.rightLabel}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })}
+      <div className="sort-item sort-single">
+        <span className="sort-text">{it.text}</span>
+        <div className="sort-btns">
+          {(["left", "right"] as const).map((side) => (
+            <button
+              key={side}
+              className={`sort-btn ${picked === side ? "on" : ""}`}
+              onClick={() => setPicks((prev) => ({ ...prev, [step]: side }))}
+            >
+              {side === "left" ? screen.leftLabel : screen.rightLabel}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {!checked ? (
-        <button className="btn btn-soft sort-check" disabled={!allPicked} onClick={check}>
-          {p.check}
-        </button>
-      ) : (
-        <p className="sort-summary">
-          {p.correct}: {correctCount} / {screen.items.length}
-        </p>
-      )}
+      <div className="sort-nav">
+        {!isLastItem ? (
+          <button className="btn btn-pri sort-check" disabled={!picked} onClick={() => setStep((s) => s + 1)}>
+            {p.continue}
+          </button>
+        ) : (
+          <button className="btn btn-pri sort-check" disabled={!picked} onClick={check}>
+            {p.check}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

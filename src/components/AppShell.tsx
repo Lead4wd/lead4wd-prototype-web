@@ -40,7 +40,6 @@ const NAV: NavSection[] = [
       {
         view: "journey",
         key: "journey",
-        badge: true,
         icon: (
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M4 19V5m0 14h16M8 16v-5m4 5V8m4 8v-3" />

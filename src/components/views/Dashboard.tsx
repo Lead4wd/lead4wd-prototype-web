@@ -1,5 +1,5 @@
-import type { Content, SkillId } from "@/data/content";
-import { levelFromScore, pctFromScore } from "@/data/content";
+import type { Content } from "@/data/content";
+import { levelFromScore, pctFromScore, SKILL_ORDER } from "@/data/content";
 import type { ManagerModule } from "@/data/modules";
 import {
   planPct,
@@ -14,7 +14,6 @@ import { Clock, Bolt } from "@/components/icons";
 
 const R = 46;
 const CIRC = 2 * Math.PI * R;
-const FOCUS_SKILLS: SkillId[] = ["feedback", "delegation"];
 
 function greetingKey(): "morning" | "afternoon" | "evening" {
   const h = new Date().getHours();
@@ -43,6 +42,10 @@ export default function Dashboard({
   const nowId = currentModuleId(completed, moduleIds);
   const current = modules.find((m) => m.id === nowId) ?? null;
   const cells = streakCells(progress.streak, d.weekdaysShort, d.todayLabel);
+
+  // This week's focus = the user's two lowest-scoring skills (their real focus
+  // areas), not a hardcoded pair — so a Strength never shows under "focus".
+  const focusSkills = [...SKILL_ORDER].sort((a, b) => progress.scores[a] - progress.scores[b]).slice(0, 2);
 
   const greeting = fmt(d.greetings[greetingKey()], { name: userName });
 
@@ -131,7 +134,7 @@ export default function Dashboard({
 
           <div className="card focus-skills">
             <span className="eyebrow">{d.focusEyebrow}</span>
-            {FOCUS_SKILLS.map((id) => {
+            {focusSkills.map((id) => {
               const lvl = levelFromScore(progress.scores[id]);
               return (
                 <div className="sk" key={id}>
@@ -158,8 +161,7 @@ export default function Dashboard({
         <div className="streakcal">
           {cells.map((cell, i) => (
             <div key={i} className={`d ${cell.state === "done" ? "done" : cell.state === "today" ? "today" : ""}`}>
-              {cell.state === "done" && <span className="ic">🔥</span>}
-              {cell.state === "today" && <span style={{ fontWeight: 800, color: "var(--accent)" }}>·</span>}
+              {(cell.state === "done" || cell.state === "today") && <span className="ic">🔥</span>}
               {cell.label}
             </div>
           ))}

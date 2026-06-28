@@ -22,7 +22,6 @@ export default function AccountSettings({
   const ac = c.account;
   const sb = getSupabaseBrowserClient();
   const [name, setName] = useState(profile.display_name ?? "");
-  const [role, setRole] = useState(profile.role);
   const [language, setLanguage] = useState<string>(profile.language);
   const [pw, setPw] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -41,7 +40,7 @@ export default function AccountSettings({
   const saveDetails = async () => {
     setBusy(true);
     setMsg(null);
-    const patch = { display_name: name.trim() || null, role: role.trim(), language };
+    const patch = { display_name: name.trim() || null, language };
     await updateProfile(profile.id, patch);
     onUpdated(patch);
     setMsg(ac.saved);
@@ -96,8 +95,6 @@ export default function AccountSettings({
 
         <label className="fld-label">{ac.nameLabel}</label>
         <input className="field" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
-        <label className="fld-label">{ac.roleLabel}</label>
-        <input className="field" maxLength={80} value={role} onChange={(e) => setRole(e.target.value)} />
         <label className="fld-label">{ac.languageLabel}</label>
         <select className="field" value={language} onChange={(e) => setLanguage(e.target.value)}>
           {languages.map((l) => (
