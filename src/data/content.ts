@@ -239,6 +239,20 @@ export type Content = {
     retakeMsg: string; // "…{pct}%…"
     retake: string;
     goToQuestions: string;
+    reveal: string;
+    hide: string;
+    save: string;
+    saved: string;
+    choosePlaceholder: string;
+    addItem: string;
+    remove: string;
+    namePlaceholder: string;
+    relationship: string;
+    power: string;
+    interest: string;
+    levelLow: string;
+    levelMedium: string;
+    levelHigh: string;
   };
   analytics: {
     eyebrow: string;
@@ -576,6 +590,20 @@ const en: Content = {
     retakeMsg: "You scored {pct}%. Score at least 60% to unlock the next module — give it another go.",
     retake: "Retake module",
     goToQuestions: "Go to the questions",
+    reveal: "Reveal",
+    hide: "Hide",
+    save: "Save",
+    saved: "Saved",
+    choosePlaceholder: "Choose a focus area…",
+    addItem: "Add another",
+    remove: "Remove",
+    namePlaceholder: "Name or role",
+    relationship: "Relationship",
+    power: "Power",
+    interest: "Interest",
+    levelLow: "Low",
+    levelMedium: "Medium",
+    levelHigh: "High",
   },
   analytics: {
     eyebrow: "Your activity",
@@ -908,6 +936,20 @@ const hi: Content = {
     retakeMsg: "आपका स्कोर {pct}% रहा। अगला मॉड्यूल खोलने के लिए कम से कम 60% चाहिए — इसे दोबारा करें।",
     retake: "मॉड्यूल दोबारा करें",
     goToQuestions: "प्रश्नों पर जाएँ",
+    reveal: "दिखाएँ",
+    hide: "छिपाएँ",
+    save: "सहेजें",
+    saved: "सहेजा गया",
+    choosePlaceholder: "एक फ़ोकस क्षेत्र चुनें…",
+    addItem: "एक और जोड़ें",
+    remove: "हटाएँ",
+    namePlaceholder: "नाम या भूमिका",
+    relationship: "संबंध",
+    power: "प्रभाव",
+    interest: "रुचि",
+    levelLow: "कम",
+    levelMedium: "मध्यम",
+    levelHigh: "उच्च",
   },
   analytics: {
     eyebrow: "आपकी गतिविधि",
@@ -1240,6 +1282,20 @@ const te: Content = {
     retakeMsg: "మీ స్కోరు {pct}%. తదుపరి మాడ్యూల్ అన్‌లాక్ కావాలంటే కనీసం 60% కావాలి — మళ్లీ ప్రయత్నించండి.",
     retake: "మాడ్యూల్ మళ్లీ చేయి",
     goToQuestions: "ప్రశ్నలకు వెళ్లండి",
+    reveal: "చూపించు",
+    hide: "దాచు",
+    save: "సేవ్ చేయి",
+    saved: "సేవ్ అయింది",
+    choosePlaceholder: "ఫోకస్ ప్రాంతాన్ని ఎంచుకోండి…",
+    addItem: "మరొకటి జోడించు",
+    remove: "తొలగించు",
+    namePlaceholder: "పేరు లేదా పాత్ర",
+    relationship: "సంబంధం",
+    power: "అధికారం",
+    interest: "ఆసక్తి",
+    levelLow: "తక్కువ",
+    levelMedium: "మధ్యస్థం",
+    levelHigh: "ఎక్కువ",
   },
   analytics: {
     eyebrow: "మీ కార్యకలాపం",

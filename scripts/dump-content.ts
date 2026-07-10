@@ -17,7 +17,9 @@ const out: string[] = [];
 MODULES.forEach((m, i) => {
   out.push(
     `insert into public.modules (id, skill, cluster, title, summary, minutes, sort_order, screens) values (` +
-      `${dq(m.id)}, ${dq(m.skill)}, ${dq(m.cluster)}, ${dq(m.title)}, ${dq(m.summary)}, ${m.minutes}, ${i + 1}, ${jb(m.screens)});`
+      `${dq(m.id)}, ${dq(m.skill)}, ${dq(m.cluster)}, ${dq(m.title)}, ${dq(m.summary)}, ${m.minutes}, ${i + 1}, ${jb(m.screens)}) ` +
+      `on conflict (id) do update set skill=excluded.skill, cluster=excluded.cluster, title=excluded.title, ` +
+      `summary=excluded.summary, minutes=excluded.minutes, sort_order=excluded.sort_order, screens=excluded.screens;`
   );
 });
 
@@ -31,7 +33,10 @@ CONTENT.en.assessment.questions.forEach((q, i) => {
     hi: CONTENT.hi.assessment.questions[i].text,
     te: CONTENT.te.assessment.questions[i].text,
   };
-  out.push(`insert into public.assessment_questions (idx, skill, text_i18n) values (${i}, ${dq(q.skill)}, ${jb(text_i18n)});`);
+  out.push(
+    `insert into public.assessment_questions (idx, skill, text_i18n) values (${i}, ${dq(q.skill)}, ${jb(text_i18n)}) ` +
+      `on conflict (idx) do update set skill=excluded.skill, text_i18n=excluded.text_i18n;`
+  );
 });
 
 CONTENT.en.onboarding.questions.forEach((q, i) => {
@@ -46,7 +51,8 @@ CONTENT.en.onboarding.questions.forEach((q, i) => {
     te: CONTENT.te.onboarding.questions[i].options,
   };
   out.push(
-    `insert into public.onboarding_questions (idx, text_i18n, options_i18n) values (${i}, ${jb(text_i18n)}, ${jb(options_i18n)});`
+    `insert into public.onboarding_questions (idx, text_i18n, options_i18n) values (${i}, ${jb(text_i18n)}, ${jb(options_i18n)}) ` +
+      `on conflict (idx) do update set text_i18n=excluded.text_i18n, options_i18n=excluded.options_i18n;`
   );
 });
 

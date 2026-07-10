@@ -49,6 +49,71 @@ export type Screen =
       textPrompt: string;
       placeholder: string;
       closing: string;
+    }
+  // Tap-to-reveal: cards that flip from a "front" (e.g. an unhelpful move) to a
+  // "back" (a better move / the reason). Purely informational — no answer.
+  | {
+      kind: "reveal";
+      title: string;
+      intro?: string;
+      frontLabel: string;
+      backLabel: string;
+      items: { label: string; front: string; back: string }[];
+      note?: string;
+    }
+  // Scenario-picker: choose a pattern, then branch into that pattern's scenario.
+  | {
+      kind: "scenariopick";
+      title: string;
+      prompt: string;
+      paths: {
+        label: string;
+        setup: string;
+        question: string;
+        choices: { text: string; feedback: string; best?: boolean }[];
+      }[];
+    }
+  // Guided free-text builder: a few prompted fields the user fills to draft a
+  // short script/plan (saved as their own words).
+  | {
+      kind: "scriptbuilder";
+      title: string;
+      intro: string;
+      fields: { label: string; hint: string; placeholder: string }[];
+      note?: string;
+    }
+  // 30-day plan builder: pick up to N focus areas, each with a micro-habit and a
+  // support/reminder. Area-specific hints guide the habit text.
+  | {
+      kind: "planbuilder";
+      title: string;
+      intro: string;
+      areaOptions: string[];
+      habitHints: { area: string; hint: string }[];
+      habitPrompt: string;
+      supportPrompt: string;
+      maxRows: number;
+      note?: string;
+    }
+  // Commitment: a single choice (e.g. check-in cadence) that closes a plan.
+  | {
+      kind: "commit";
+      title: string;
+      intro: string;
+      question: string;
+      options: string[];
+      closing: string;
+    }
+  // Stakeholder map + power/interest grid: repeatable rows (name + relationship),
+  // each tagged with power/interest to yield a plain-language classification.
+  | {
+      kind: "stakeholdermap";
+      title: string;
+      prompt: string;
+      hint?: string;
+      relationshipOptions: string[];
+      classifications: { highHigh: string; highLow: string; lowHigh: string; lowLow: string };
+      note?: string;
     };
 
 export type ManagerModule = {
@@ -1213,7 +1278,7 @@ export const MODULES: ManagerModule[] = [
     cluster: "Conflict, difficult people & well-being",
     title: "Dealing with difficult behaviours",
     summary: "Respond to defensive, disengaged, or dominating behaviour — not labels.",
-    minutes: 4,
+    minutes: 6,
     screens: [
       {
         kind: "hook",
@@ -1233,6 +1298,31 @@ export const MODULES: ManagerModule[] = [
           { h: "Dominating", p: "Talks over others, takes all the space. Need: to be heard. Acknowledge, then make room for others." },
         ],
         note: "Diagnose the need before you choose the response.",
+      },
+      {
+        kind: "reveal",
+        title: "First, avoid pouring fuel on the fire",
+        intro: "For each pattern, notice the trap first — then tap to reveal a better move.",
+        frontLabel: "Common unhelpful move",
+        backLabel: "A better move",
+        items: [
+          {
+            label: "Defensive",
+            front: "Telling them 'you're being defensive', or arguing the feedback point by point.",
+            back: "Stay calm, acknowledge the feeling, and focus on the specific behaviour and its impact — not their character. If emotions run high, agree to revisit later.",
+          },
+          {
+            label: "Disengaged",
+            front: "Ignoring it for months, or giving vague nudges like 'just be more proactive'.",
+            back: "Have a clear 1:1 about what you're seeing, ask what's going on, connect their work to goals, and agree 1–2 concrete things to watch together.",
+          },
+          {
+            label: "Dominating",
+            front: "Letting them run the room to avoid conflict — or challenging them vaguely and hesitantly.",
+            back: "Be direct, specific and respectful about the impact, reset the meeting norms, and give them the right way to contribute.",
+          },
+        ],
+        note: "You can't control their reaction, but you can choose a response that lowers the heat.",
       },
       {
         kind: "dragdrop",
@@ -1271,6 +1361,43 @@ export const MODULES: ManagerModule[] = [
         followUp: "Privately, you can also give them a role: 'I'd love you to draw out the quieter folks.'",
       },
       {
+        kind: "scenariopick",
+        title: "Practise with the pattern you face most",
+        prompt: "Pick the behaviour you're dealing with most right now, then choose your next move.",
+        paths: [
+          {
+            label: "Defensive to feedback",
+            setup: "You share specific feedback about missed deadlines. They immediately say: 'That's not fair — everyone's late, and you're only picking on me.'",
+            question: "What's your next sentence?",
+            choices: [
+              { text: "'You're just being defensive again — this is exactly the problem.'", feedback: "Makes them the problem; you'll get more defence, not progress." },
+              { text: "'Forget it, it's not a big deal.'", feedback: "Avoids the issue — the pattern repeats and the deadlines don't change." },
+              { text: "'I can hear this feels unfair. I still need us to look at these specific deadlines and what we can change going forward.'", feedback: "Acknowledges the emotion, stays calm, and brings focus back to behaviour and next steps.", best: true },
+            ],
+          },
+          {
+            label: "Disengaged / checked-out",
+            setup: "Over the last month they've been quiet in meetings, missing small tasks, doing the minimum. When you ask how things are, they say 'Fine.'",
+            question: "What's the best opening for your next 1:1?",
+            choices: [
+              { text: "'You need to be more passionate — this isn't a good attitude.'", feedback: "Judges character, not behaviour; likely deepens the disengagement." },
+              { text: "'Are you planning to quit?'", feedback: "Puts them on the defensive and skips understanding the cause." },
+              { text: "'I've noticed you seem quieter and we've had a few missed follow-throughs. I want to understand what's going on and how I can support you.'", feedback: "Specific observations, curiosity, and shared responsibility for getting back on track.", best: true },
+            ],
+          },
+          {
+            label: "Dominant in meetings",
+            setup: "In team meetings one person regularly interrupts and dismisses others' ideas. Others have stopped speaking up.",
+            question: "What's the best first step?",
+            choices: [
+              { text: "Call them out sharply in the meeting: 'You need to let other people talk — this is rude.'", feedback: "Public shaming breeds defensiveness and tension." },
+              { text: "Avoid it and just invite others more, hoping they take the hint.", feedback: "Hope isn't a plan; the pattern continues." },
+              { text: "Have a private conversation: describe specific moments, the impact on others, and reset expectations for balanced participation.", feedback: "Direct, fact-based and respectful — clarifies boundaries without humiliation.", best: true },
+            ],
+          },
+        ],
+      },
+      {
         kind: "action",
         title: "Today's action: diagnose, don't label",
         intro: "Pick one person whose behaviour frustrates you. Ask yourself:",
@@ -1280,6 +1407,29 @@ export const MODULES: ManagerModule[] = [
           "What's one small response that addresses the need?",
         ],
         note: "Try that response once this week and watch what shifts.",
+      },
+      {
+        kind: "scriptbuilder",
+        title: "Build your own micro-script",
+        intro: "Pick one person or situation in mind (no names). Sketch a short 3-part script you'd feel comfortable saying.",
+        fields: [
+          {
+            label: "What you've observed (facts, not labels)",
+            hint: "Specific examples over time — e.g. 'When I give feedback, we get stuck on whether it's fair and don't reach next steps.'",
+            placeholder: "I've noticed…",
+          },
+          {
+            label: "Impact + what you need instead",
+            hint: "Why it's a problem for the work or team, and the clear behaviour you need.",
+            placeholder: "This is a problem because… What I need instead is…",
+          },
+          {
+            label: "A curious question / offer of support",
+            hint: "Invite their view and offer help.",
+            placeholder: "Help me understand what's going on. What would help you do this consistently?",
+          },
+        ],
+        note: "Keep it short and human. Facts, impact, and a genuine question beat a lecture.",
       },
       {
         kind: "reflect",
@@ -1562,7 +1712,7 @@ export const MODULES: ManagerModule[] = [
     cluster: "Team culture & collaboration",
     title: "Diversity, inclusion & fairness in daily decisions",
     summary: "Catch everyday bias and make your routine calls fairer.",
-    minutes: 4,
+    minutes: 5,
     screens: [
       {
         kind: "hook",
@@ -1582,6 +1732,31 @@ export const MODULES: ManagerModule[] = [
           { h: "Fair opportunity", p: "Spread stretch projects, visibility, and credit deliberately — not just to your favourites." },
         ],
         note: "You can't remove bias entirely, but you can build habits that check it.",
+      },
+      {
+        kind: "reveal",
+        title: "Three everyday traps that quietly shape decisions",
+        intro: "Tap each trap to see how it plays out — and one way to counter it.",
+        frontLabel: "The trap",
+        backLabel: "Why it matters — and the fix",
+        items: [
+          {
+            label: "Similarity bias ('people like me')",
+            front: "We naturally trust, listen to, and promote people who feel similar to us in background, style, or interests.",
+            back: "Others get fewer chances, less airtime, or less stretch work — even when we don't intend it. Slow down and widen who you consider.",
+          },
+          {
+            label: "Visibility bias ('the ones I see most')",
+            front: "We over-rely on the people who are most visible, vocal, or top-of-mind — those in our time zone or who speak up confidently.",
+            back: "Quieter, remote, or under-represented people get left out of key work. Deliberately seek out the voices you're not hearing.",
+          },
+          {
+            label: "Status-quo trap ('easier to keep doing this')",
+            front: "We keep giving the 'important' tasks to the same people because it feels safer or quicker.",
+            back: "Over time some get all the opportunities while others are stuck with low-visibility work. Rotate stretch work deliberately.",
+          },
+        ],
+        note: "You can't delete bias, but you can slow down at key moments and use simple checks.",
       },
       {
         kind: "dragdrop",
@@ -1649,7 +1824,7 @@ export const MODULES: ManagerModule[] = [
     cluster: "Growing into a broader leader",
     title: "Stakeholder management & influence",
     summary: "Lead beyond your team — manage up and influence without authority.",
-    minutes: 4,
+    minutes: 6,
     screens: [
       {
         kind: "hook",
@@ -1669,6 +1844,20 @@ export const MODULES: ManagerModule[] = [
           { h: "Build trust before you need it", p: "Reliable follow-through and generosity now create goodwill you can draw on later." },
         ],
         note: "Influence is mostly relationship and clarity, banked in advance.",
+      },
+      {
+        kind: "stakeholdermap",
+        title: "Who matters most to your current work?",
+        prompt: "Think of one important project or outcome you own. Add the 3–5 people or groups (outside your team) who most affect whether it succeeds — then tag each one's power and interest.",
+        hint: "If they can block you, or really care about the outcome, they belong on the list.",
+        relationshipOptions: ["My manager", "Another team", "Senior leader", "Customer", "Supplier", "Other"],
+        classifications: {
+          highHigh: "Priority partner — manage closely and involve them early.",
+          highLow: "Keep satisfied — give them what they need, but don't overload them.",
+          lowHigh: "Keep informed and engaged — they care and can become allies.",
+          lowLow: "Monitor — a light touch is enough for now.",
+        },
+        note: "This tells you who needs your proactive time and tailored communication.",
       },
       {
         kind: "dragdrop",
@@ -1899,6 +2088,75 @@ export const MODULES: ManagerModule[] = [
         textPrompt: "What's the one thing you'll deliberately work on next?",
         placeholder: "I'll work on…",
         closing: "You've reached the end of the journey — but a great manager never stops learning. Keep the loop going.",
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------- Module 22
+  // Capstone (doc: "Putting It All Together"). Reflect across the journey, pick
+  // 2–3 focus habits, build a 30-day plan, and commit to a check-in.
+  {
+    id: "m22",
+    skill: "communication",
+    cluster: "Putting it all together",
+    title: "Putting it all together: your 30-day plan",
+    summary: "Turn everything you've learned into 2–3 focus habits for the next 30 days.",
+    minutes: 5,
+    screens: [
+      {
+        kind: "hook",
+        title: "Great managers don't try to change everything at once",
+        body: [
+          "You've seen a lot of skills in this journey — mindset, communication, feedback, delegation, conflict, coaching, and more.",
+          "Real improvement comes from choosing a few things to practise consistently, not from remembering every tip.",
+          "This final module turns your learning into a simple 30-day plan.",
+        ],
+      },
+      {
+        kind: "planbuilder",
+        title: "Turn your focus into small, repeatable actions",
+        intro: "Pick up to three focus areas. For each, choose one small habit and what will help you stick to it. Keep it small enough that you'll actually do it.",
+        areaOptions: [
+          "Clarity & expectations",
+          "Feedback & difficult conversations",
+          "Listening & coaching",
+          "Delegation & trust",
+          "Time & priority management",
+          "Team climate & safety",
+          "Managing up & stakeholders",
+          "Leading change / remote",
+        ],
+        habitHints: [
+          { area: "Clarity & expectations", hint: "e.g. Define 'done' clearly for at least one task per day." },
+          { area: "Feedback & difficult conversations", hint: "e.g. Give one piece of specific, kind feedback each week." },
+          { area: "Listening & coaching", hint: "e.g. Use one coaching question in every 1:1." },
+          { area: "Delegation & trust", hint: "e.g. Delegate one task with clear ownership each week." },
+          { area: "Time & priority management", hint: "e.g. Protect two focus blocks per week." },
+          { area: "Team climate & safety", hint: "e.g. Thank people for speaking up about risks." },
+          { area: "Managing up & stakeholders", hint: "e.g. Send a short weekly update with progress + risks." },
+          { area: "Leading change / remote", hint: "e.g. Name one team norm clearly this month." },
+        ],
+        habitPrompt: "One small behaviour I'll practise",
+        supportPrompt: "What will help you remember and stick to this?",
+        maxRows: 3,
+        note: "Your plan doesn't have to be perfect — just small enough that you can actually do it.",
+      },
+      {
+        kind: "commit",
+        title: "Your 30-day manager challenge",
+        intro: "You've chosen your focus and your habits. Now set a check-in so it sticks.",
+        question: "When will you check in on your progress?",
+        options: ["Weekly (recommended)", "After 30 days", "I'm not sure yet"],
+        closing: "You can always adjust the plan. The important thing is to start and pay attention.",
+      },
+      {
+        kind: "reflect",
+        title: "30-day check-in: what changed?",
+        scaleQuestion: "For the areas you chose, how much did you practise your habits?",
+        scaleOptions: ["Barely at all", "A little", "Quite often", "Consistently"],
+        textPrompt: "What's one thing that feels easier or better as a manager now, compared to 30 days ago?",
+        placeholder: "What feels easier now is…",
+        closing: "Leadership is built in small cycles of practice, reflection, and adjustment. You're doing the work.",
       },
     ],
   },
