@@ -316,3 +316,65 @@ export type GaSummary =
 export async function fetchGaSummary(scope: "user" | "admin"): Promise<GaSummary> {
   return (await apiGet<GaSummary>(`/analytics/ga?scope=${scope}`)) ?? { configured: false };
 }
+
+// ---------- AI coach ----------
+// The coach streams its reply, so this can't use apiGet/apiSend (JSON-only) —
+// it reads the SSE body incrementally and hands each delta to onDelta.
+export type CoachMessage = { role: "user" | "assistant"; content: string };
+
+export async function fetchAiStatus(): Promise<boolean> {
+  return (await apiGet<{ configured: boolean }>("/ai/status"))?.configured ?? false;
+}
+
+export async function streamCoachReply(
+  messages: CoachMessage[],
+  onDelta: (text: string) => void,
+  signal?: AbortSignal
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/me/ai`, {
+      method: "POST",
+      headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+      body: JSON.stringify({ mode: "coach", messages }),
+      signal,
+    });
+
+    if (!res.ok || !res.body) {
+      // Errors before the stream starts come back as normal JSON.
+      const j = (await res.json().catch(() => null)) as { error?: string } | null;
+      logErr("POST /me/ai", res.status);
+      return { ok: false, error: j?.error ?? "The coach is unavailable right now." };
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const frames = buffer.split("\n\n");
+      buffer = frames.pop() ?? "";
+      for (const frame of frames) {
+        for (const line of frame.split("\n")) {
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload) continue;
+          try {
+            const ev = JSON.parse(payload) as { delta?: string; done?: boolean; error?: string };
+            if (ev.error) return { ok: false, error: ev.error };
+            if (ev.delta) onDelta(ev.delta);
+          } catch {
+            /* ignore a malformed frame */
+          }
+        }
+      }
+    }
+    return { ok: true };
+  } catch (e) {
+    if ((e as Error).name === "AbortError") return { ok: true };
+    logErr("POST /me/ai", e);
+    return { ok: false, error: "The coach is unavailable right now." };
+  }
+}

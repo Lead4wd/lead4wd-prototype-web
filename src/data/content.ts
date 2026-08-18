@@ -74,12 +74,13 @@ export type Content = {
     team: string;
     assessment: string;
     analytics: string; // user-facing analytics page
+    coach: string; // AI coach nav item
     adminPanel: string; // admin panel nav item
   };
   topbar: { search: string; streakLabel: string }; // streakLabel: "{n}-day streak"
   profile: { name: string; role: string };
   pageTitles: Record<
-    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment" | "analytics" | "admin",
+    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment" | "analytics" | "coach" | "admin",
     string
   >;
   levels: { strength: string; developing: string; focus: string };
@@ -267,6 +268,20 @@ export type Content = {
     minutesUnit: string; // "{n} min"
     noData: string;
   };
+  coach: {
+    eyebrow: string;
+    title: string;
+    lede: string;
+    emptyHint: string;
+    suggestions: string[];
+    coachLabel: string;
+    thinking: string;
+    placeholder: string;
+    send: string;
+    sending: string;
+    disclaimer: string;
+    unavailable: string;
+  };
   admin: {
     title: string;
     lede: string;
@@ -336,6 +351,7 @@ const en: Content = {
     team: "Team Pulse",
     assessment: "Re-take check",
     analytics: "My analytics",
+    coach: "AI coach",
     adminPanel: "User analytics",
   },
   topbar: { search: "Search lessons & skills", streakLabel: "{n}-day streak" },
@@ -348,6 +364,7 @@ const en: Content = {
     team: "Team Pulse",
     assessment: "Skills check",
     analytics: "My analytics",
+    coach: "Ask your coach",
     admin: "Admin · user analytics",
   },
   levels: { strength: "Strength", developing: "Developing", focus: "Focus area" },
@@ -618,6 +635,24 @@ const en: Content = {
     minutesUnit: "{n} min",
     noData: "No activity yet — start a module and your stats will appear here.",
   },
+  coach: {
+    eyebrow: "Your coach",
+    title: "Ask your coach",
+    lede: "A coach that knows your skills check, your progress, and what you've written. Ask about anything happening with your team.",
+    emptyHint: "Describe a real situation, or start with one of these:",
+    suggestions: [
+      "One of my team keeps missing deadlines. What do I do?",
+      "How do I give feedback without demotivating someone?",
+      "I'm doing too much myself. Where do I start with delegating?",
+    ],
+    coachLabel: "Coach",
+    thinking: "Thinking…",
+    placeholder: "What's on your mind?",
+    send: "Send",
+    sending: "Sending…",
+    disclaimer: "Coaching guidance, not HR, legal, or medical advice.",
+    unavailable: "The AI coach isn't switched on yet. Check back soon.",
+  },
   admin: {
     title: "User analytics",
     lede: "Every learner's progress, responses, time, and skips.",
@@ -687,6 +722,7 @@ const hi: Content = {
     team: "टीम पल्स",
     assessment: "दोबारा जाँच",
     analytics: "मेरा विश्लेषण",
+    coach: "AI कोच",
     adminPanel: "उपयोगकर्ता विश्लेषण",
   },
   topbar: { search: "पाठ और कौशल खोजें", streakLabel: "{n}-दिन की लय" },
@@ -699,6 +735,7 @@ const hi: Content = {
     team: "टीम पल्स",
     assessment: "कौशल जाँच",
     analytics: "मेरा विश्लेषण",
+    coach: "अपने कोच से पूछें",
     admin: "एडमिन · उपयोगकर्ता विश्लेषण",
   },
   levels: { strength: "मज़बूती", developing: "विकासशील", focus: "फोकस क्षेत्र" },
@@ -964,6 +1001,24 @@ const hi: Content = {
     minutesUnit: "{n} मिनट",
     noData: "अभी कोई गतिविधि नहीं — एक मॉड्यूल शुरू करें और आपके आँकड़े यहाँ दिखेंगे।",
   },
+  coach: {
+    eyebrow: "आपका कोच",
+    title: "अपने कोच से पूछें",
+    lede: "एक कोच जो आपकी कौशल जाँच, आपकी प्रगति और आपके लिखे को जानता है। अपनी टीम से जुड़ी किसी भी बात पर पूछें।",
+    emptyHint: "कोई वास्तविक स्थिति बताएं, या इनमें से एक से शुरू करें:",
+    suggestions: [
+      "मेरी टीम का एक सदस्य बार-बार समयसीमा चूक रहा है। मैं क्या करूँ?",
+      "बिना हतोत्साहित किए फीडबैक कैसे दूँ?",
+      "मैं खुद ही बहुत काम कर रहा हूँ। सौंपना कहाँ से शुरू करूँ?",
+    ],
+    coachLabel: "कोच",
+    thinking: "सोच रहा है…",
+    placeholder: "आपके मन में क्या है?",
+    send: "भेजें",
+    sending: "भेजा जा रहा है…",
+    disclaimer: "कोचिंग मार्गदर्शन — HR, कानूनी या चिकित्सा सलाह नहीं।",
+    unavailable: "AI कोच अभी चालू नहीं है। जल्द ही देखें।",
+  },
   admin: {
     title: "उपयोगकर्ता विश्लेषण",
     lede: "हर सीखने वाले की प्रगति, उत्तर, समय और छोड़े गए हिस्से।",
@@ -1033,6 +1088,7 @@ const te: Content = {
     team: "టీమ్ పల్స్",
     assessment: "మళ్లీ తనిఖీ",
     analytics: "నా విశ్లేషణ",
+    coach: "AI కోచ్",
     adminPanel: "వినియోగదారు విశ్లేషణ",
   },
   topbar: { search: "పాఠాలు & నైపుణ్యాలను వెతకండి", streakLabel: "{n}-రోజుల స్ట్రీక్" },
@@ -1045,6 +1101,7 @@ const te: Content = {
     team: "టీమ్ పల్స్",
     assessment: "నైపుణ్య తనిఖీ",
     analytics: "నా విశ్లేషణ",
+    coach: "మీ కోచ్‌ను అడగండి",
     admin: "అడ్మిన్ · వినియోగదారు విశ్లేషణ",
   },
   levels: { strength: "బలం", developing: "అభివృద్ధి", focus: "దృష్టి ప్రాంతం" },
@@ -1309,6 +1366,24 @@ const te: Content = {
     dailyTitle: "రోజువారీ కార్యకలాపం",
     minutesUnit: "{n} నిమి",
     noData: "ఇంకా కార్యకలాపం లేదు — ఒక మాడ్యూల్ ప్రారంభించండి, మీ గణాంకాలు ఇక్కడ కనిపిస్తాయి.",
+  },
+  coach: {
+    eyebrow: "మీ కోచ్",
+    title: "మీ కోచ్‌ను అడగండి",
+    lede: "మీ స్కిల్స్ చెక్, మీ పురోగతి, మీరు రాసినది తెలిసిన కోచ్. మీ బృందంతో జరుగుతున్న దేని గురించైనా అడగండి.",
+    emptyHint: "నిజమైన పరిస్థితిని వివరించండి, లేదా వీటిలో ఒకదానితో ప్రారంభించండి:",
+    suggestions: [
+      "మా బృందంలో ఒకరు గడువులు తప్పుతున్నారు. నేనేం చేయాలి?",
+      "నిరుత్సాహపరచకుండా ఫీడ్‌బ్యాక్ ఎలా ఇవ్వాలి?",
+      "నేనే ఎక్కువ పని చేస్తున్నాను. అప్పగించడం ఎక్కడ మొదలుపెట్టాలి?",
+    ],
+    coachLabel: "కోచ్",
+    thinking: "ఆలోచిస్తోంది…",
+    placeholder: "మీ మనసులో ఏముంది?",
+    send: "పంపు",
+    sending: "పంపుతోంది…",
+    disclaimer: "కోచింగ్ మార్గదర్శకం — HR, న్యాయ లేదా వైద్య సలహా కాదు.",
+    unavailable: "AI కోచ్ ఇంకా అందుబాటులో లేదు. త్వరలో చూడండి.",
   },
   admin: {
     title: "వినియోగదారు విశ్లేషణ",
