@@ -29,7 +29,9 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 async function apiGet<T>(path: string): Promise<T | null> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, { headers: await authHeaders() });
+    // no-store: these reads reflect live per-user state and config. A cached
+    // response is indistinguishable from a broken backend.
+    const res = await fetch(`${API_BASE}${path}`, { headers: await authHeaders(), cache: "no-store" });
     if (!res.ok) {
       logErr(`GET ${path}`, res.status);
       return null;
