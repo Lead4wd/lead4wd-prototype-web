@@ -281,6 +281,10 @@ export type Content = {
     sending: string;
     disclaimer: string;
     unavailable: string;
+    newChat: string;
+    history: string;
+    noHistory: string;
+    deleteChat: string;
   };
   admin: {
     title: string;
@@ -652,6 +656,10 @@ const en: Content = {
     sending: "Sending…",
     disclaimer: "Coaching guidance, not HR, legal, or medical advice.",
     unavailable: "The AI coach isn't switched on yet. Check back soon.",
+    newChat: "New chat",
+    history: "Recent chats",
+    noHistory: "No saved chats yet.",
+    deleteChat: "Delete chat",
   },
   admin: {
     title: "User analytics",
@@ -1018,6 +1026,10 @@ const hi: Content = {
     sending: "भेजा जा रहा है…",
     disclaimer: "कोचिंग मार्गदर्शन — HR, कानूनी या चिकित्सा सलाह नहीं।",
     unavailable: "AI कोच अभी चालू नहीं है। जल्द ही देखें।",
+    newChat: "नई चैट",
+    history: "हाल की चैट्स",
+    noHistory: "अभी कोई सहेजी गई चैट नहीं।",
+    deleteChat: "चैट हटाएँ",
   },
   admin: {
     title: "उपयोगकर्ता विश्लेषण",
@@ -1384,6 +1396,10 @@ const te: Content = {
     sending: "పంపుతోంది…",
     disclaimer: "కోచింగ్ మార్గదర్శకం — HR, న్యాయ లేదా వైద్య సలహా కాదు.",
     unavailable: "AI కోచ్ ఇంకా అందుబాటులో లేదు. త్వరలో చూడండి.",
+    newChat: "కొత్త చాట్",
+    history: "ఇటీవలి చాట్లు",
+    noHistory: "ఇంకా సేవ్ చేసిన చాట్లు లేవు.",
+    deleteChat: "చాట్ తొలగించండి",
   },
   admin: {
     title: "వినియోగదారు విశ్లేషణ",

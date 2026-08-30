@@ -328,17 +328,43 @@ export async function fetchAiStatus(): Promise<boolean> {
   return (await apiGet<{ configured: boolean }>("/ai/status"))?.configured ?? false;
 }
 
+export type CoachConversation = { id: string; title: string; updatedAt: string };
+
+export async function fetchConversations(): Promise<CoachConversation[]> {
+  return (await apiGet<{ conversations: CoachConversation[] }>("/me/ai/conversations"))?.conversations ?? [];
+}
+
+export async function fetchConversation(id: string): Promise<CoachMessage[]> {
+  const r = await apiGet<{ messages: CoachMessage[] }>(`/me/ai/conversations/${encodeURIComponent(id)}`);
+  return r?.messages ?? [];
+}
+
+export async function deleteConversation(id: string): Promise<boolean> {
+  return apiSend("DELETE", `/me/ai/conversations/${encodeURIComponent(id)}`);
+}
+
+/**
+ * Send one message and stream the reply.
+ *
+ * Only the NEW message goes up — the server replays the stored history — so a
+ * refresh loses nothing. Pass conversationId to continue a chat, or omit it to
+ * start one; either way the id arrives on the first SSE frame via onConversation.
+ */
 export async function streamCoachReply(
-  messages: CoachMessage[],
-  onDelta: (text: string) => void,
-  signal?: AbortSignal
+  message: string,
+  opts: {
+    conversationId?: string;
+    onConversation?: (id: string) => void;
+    onDelta: (text: string) => void;
+    signal?: AbortSignal;
+  }
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   try {
     const res = await fetch(`${API_BASE}/me/ai`, {
       method: "POST",
       headers: { ...(await authHeaders()), "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "coach", messages }),
-      signal,
+      body: JSON.stringify({ mode: "coach", message, conversationId: opts.conversationId }),
+      signal: opts.signal,
     });
 
     if (!res.ok || !res.body) {
@@ -364,9 +390,15 @@ export async function streamCoachReply(
           const payload = line.slice(5).trim();
           if (!payload) continue;
           try {
-            const ev = JSON.parse(payload) as { delta?: string; done?: boolean; error?: string };
+            const ev = JSON.parse(payload) as {
+              delta?: string;
+              done?: boolean;
+              error?: string;
+              conversationId?: string;
+            };
+            if (ev.conversationId) opts.onConversation?.(ev.conversationId);
             if (ev.error) return { ok: false, error: ev.error };
-            if (ev.delta) onDelta(ev.delta);
+            if (ev.delta) opts.onDelta(ev.delta);
           } catch {
             /* ignore a malformed frame */
           }
@@ -380,3 +412,4 @@ export async function streamCoachReply(
     return { ok: false, error: "The coach is unavailable right now." };
   }
 }
+
