@@ -15,17 +15,27 @@ export default function AiCoach({ c }: { c: Content }) {
   const [error, setError] = useState<string | null>(null);
   const [available, setAvailable] = useState<boolean | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const endRef = useRef<HTMLDivElement | null>(null);
+  const threadRef = useRef<HTMLDivElement | null>(null);
+  // Whether the user is parked at the bottom. If they have scrolled up to
+  // re-read something, a streaming reply must not yank them back down.
+  const stickRef = useRef(true);
 
   useEffect(() => {
     void fetchAiStatus().then(setAvailable);
     return () => abortRef.current?.abort();
   }, []);
 
-  // Keep the newest message in view as it streams.
+  // Keep the newest message in view as it streams. The thread is its own
+  // scroll container, so scroll it directly rather than the page.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const el = threadRef.current;
+    if (el && stickRef.current) el.scrollTop = el.scrollHeight;
   }, [messages]);
+
+  const onThreadScroll = () => {
+    const el = threadRef.current;
+    if (el) stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+  };
 
   const send = async (text: string) => {
     const content = text.trim();
@@ -36,6 +46,7 @@ export default function AiCoach({ c }: { c: Content }) {
     setInput("");
     setBusy(true);
     setError(null);
+    stickRef.current = true; // they just sent — follow the reply down
 
     const controller = new AbortController();
     abortRef.current = controller;
@@ -66,7 +77,7 @@ export default function AiCoach({ c }: { c: Content }) {
   if (available === false) {
     return (
       <section className="view on">
-        <div className="coach-wrap">
+        <div className="coach-wrap coach-wrap-plain">
           <h1>{t.title}</h1>
           <p className="sub" style={{ marginTop: 10 }}>
             {t.unavailable}
@@ -87,7 +98,7 @@ export default function AiCoach({ c }: { c: Content }) {
           <p className="sub">{t.lede}</p>
         </div>
 
-        <div className="coach-thread">
+        <div className="coach-thread" ref={threadRef} onScroll={onThreadScroll}>
           {empty && (
             <div className="coach-empty">
               <p>{t.emptyHint}</p>
@@ -111,7 +122,6 @@ export default function AiCoach({ c }: { c: Content }) {
           ))}
 
           {error && <p className="coach-error">{error}</p>}
-          <div ref={endRef} />
         </div>
 
         <form
