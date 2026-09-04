@@ -8,6 +8,7 @@ import type { EngagementKind, QuestionAttempt } from "@/lib/data";
 import { gaEvent } from "@/lib/ga";
 import { fmt } from "@/lib/format";
 import { ChevronLeft, Clock, Check } from "@/components/icons";
+import ReflectionPartner from "@/components/ReflectionPartner";
 
 const PASS_PCT = 60;
 
@@ -161,7 +162,9 @@ export default function ModulePlayer({
           key={idx}
           screen={screen}
           screenIdx={idx}
+          c={c}
           p={p}
+          moduleId={module.id}
           reflection={reflection}
           setReflection={setReflection}
           onQuiz={(correct, total) => {
@@ -214,7 +217,9 @@ export default function ModulePlayer({
 function ScreenView({
   screen,
   screenIdx,
+  c,
   p,
+  moduleId,
   reflection,
   setReflection,
   onQuiz,
@@ -222,7 +227,9 @@ function ScreenView({
 }: {
   screen: Screen;
   screenIdx: number;
+  c: Content;
   p: Content["player"];
+  moduleId: string;
   reflection: string;
   setReflection: (s: string) => void;
   onQuiz: (correct: number, total: number) => void;
@@ -324,6 +331,11 @@ function ScreenView({
               onChange={(e) => setReflection(e.target.value)}
             />
           </div>
+          <ReflectionPartner
+            c={c}
+            draft={reflection}
+            artifact={{ kind: "reflect", moduleId, prompt: screen.textPrompt }}
+          />
           <p className="screen-note">{screen.closing}</p>
         </div>
       );
@@ -335,10 +347,28 @@ function ScreenView({
       return <ScreenScenarioPick screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
 
     case "scriptbuilder":
-      return <ScreenScriptBuilder screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
+      return (
+        <ScreenScriptBuilder
+          screen={screen}
+          screenIdx={screenIdx}
+          c={c}
+          p={p}
+          moduleId={moduleId}
+          onAttempt={onAttempt}
+        />
+      );
 
     case "planbuilder":
-      return <ScreenPlanBuilder screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
+      return (
+        <ScreenPlanBuilder
+          screen={screen}
+          screenIdx={screenIdx}
+          c={c}
+          p={p}
+          moduleId={moduleId}
+          onAttempt={onAttempt}
+        />
+      );
 
     case "commit":
       return <ScreenCommit screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} />;
@@ -665,16 +695,26 @@ function ScreenScenarioPick({
 function ScreenScriptBuilder({
   screen,
   screenIdx,
+  c,
   p,
+  moduleId,
   onAttempt,
 }: {
   screen: Extract<Screen, { kind: "scriptbuilder" }>;
   screenIdx: number;
+  c: Content;
   p: Content["player"];
+  moduleId: string;
   onAttempt: (key: string, a: QuestionAttempt) => void;
 }) {
   const [vals, setVals] = useState<Record<number, string>>({});
   const any = Object.values(vals).some((v) => v.trim().length > 0);
+  // Label each answer so the coach reacts to the right part of the script.
+  const draft = screen.fields
+    .map((f, i) => ({ label: f.label, text: (vals[i] ?? "").trim() }))
+    .filter((x) => x.text)
+    .map((x) => `${x.label}: ${x.text}`)
+    .join("\n");
   return (
     <div className="screen">
       <h2 className="screen-h">{screen.title}</h2>
@@ -704,6 +744,11 @@ function ScreenScriptBuilder({
         ))}
       </div>
       {any && <span className="saved-chip">{p.saved}</span>}
+      <ReflectionPartner
+        c={c}
+        draft={draft}
+        artifact={{ kind: "scriptbuilder", moduleId, prompt: screen.intro }}
+      />
       {screen.note && <p className="screen-note">{screen.note}</p>}
     </div>
   );
@@ -714,12 +759,16 @@ function ScreenScriptBuilder({
 function ScreenPlanBuilder({
   screen,
   screenIdx,
+  c,
   p,
+  moduleId,
   onAttempt,
 }: {
   screen: Extract<Screen, { kind: "planbuilder" }>;
   screenIdx: number;
+  c: Content;
   p: Content["player"];
+  moduleId: string;
   onAttempt: (key: string, a: QuestionAttempt) => void;
 }) {
   type Row = { area: string; habit: string; support: string };
@@ -740,6 +789,11 @@ function ScreenPlanBuilder({
       }
       return next;
     });
+  // One line per filled row, so the coach can pressure-test each habit.
+  const planDraft = rows
+    .filter((r) => r.area && r.habit.trim())
+    .map((r) => `${r.area}: ${r.habit.trim()}${r.support.trim() ? ` (support: ${r.support.trim()})` : ""}`)
+    .join("\n");
   return (
     <div className="screen">
       <h2 className="screen-h">{screen.title}</h2>
@@ -795,6 +849,11 @@ function ScreenPlanBuilder({
           {p.addItem}
         </button>
       )}
+      <ReflectionPartner
+        c={c}
+        draft={planDraft}
+        artifact={{ kind: "planbuilder", moduleId, prompt: screen.intro }}
+      />
       {screen.note && <p className="screen-note">{screen.note}</p>}
     </div>
   );

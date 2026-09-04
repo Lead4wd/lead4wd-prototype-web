@@ -344,16 +344,30 @@ export async function deleteConversation(id: string): Promise<boolean> {
 }
 
 /**
+ * Which lesson screen produced the draft, so the coach reacts to the right
+ * question. The draft itself travels as the message.
+ */
+export type CoachArtifact = {
+  kind: "reflect" | "scriptbuilder" | "planbuilder";
+  moduleId?: string;
+  prompt?: string;
+};
+
+/**
  * Send one message and stream the reply.
  *
  * Only the NEW message goes up — the server replays the stored history — so a
  * refresh loses nothing. Pass conversationId to continue a chat, or omit it to
  * start one; either way the id arrives on the first SSE frame via onConversation.
+ *
+ * Pass an artifact to get the reflection partner instead of the open coach: the
+ * server switches modes on its presence, so the two cannot disagree.
  */
 export async function streamCoachReply(
   message: string,
   opts: {
     conversationId?: string;
+    artifact?: CoachArtifact;
     onConversation?: (id: string) => void;
     onDelta: (text: string) => void;
     signal?: AbortSignal;
@@ -363,7 +377,12 @@ export async function streamCoachReply(
     const res = await fetch(`${API_BASE}/me/ai`, {
       method: "POST",
       headers: { ...(await authHeaders()), "Content-Type": "application/json" },
-      body: JSON.stringify({ mode: "coach", message, conversationId: opts.conversationId }),
+      body: JSON.stringify({
+        mode: opts.artifact ? "reflect" : "coach",
+        message,
+        conversationId: opts.conversationId,
+        artifact: opts.artifact,
+      }),
       signal: opts.signal,
     });
 

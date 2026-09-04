@@ -285,6 +285,13 @@ export type Content = {
     history: string;
     noHistory: string;
     deleteChat: string;
+    partner: {
+      lede: string;
+      ask: string;
+      needMore: string;
+      again: string;
+      savedNote: string;
+    };
   };
   admin: {
     title: string;
@@ -660,6 +667,13 @@ const en: Content = {
     history: "Recent chats",
     noHistory: "No saved chats yet.",
     deleteChat: "Delete chat",
+    partner: {
+      lede: "Want a response to what you just wrote?",
+      ask: "Ask your coach",
+      needMore: "Write a little more and your coach can respond.",
+      again: "Ask again",
+      savedNote: "Saved to your coach chats — carry it on there any time.",
+    },
   },
   admin: {
     title: "User analytics",
@@ -1030,6 +1044,13 @@ const hi: Content = {
     history: "हाल की चैट्स",
     noHistory: "अभी कोई सहेजी गई चैट नहीं।",
     deleteChat: "चैट हटाएँ",
+    partner: {
+      lede: "आपने जो लिखा है, उस पर कोच की राय चाहिए?",
+      ask: "अपने कोच से पूछें",
+      needMore: "थोड़ा और लिखें, तब कोच जवाब दे पाएगा।",
+      again: "फिर से पूछें",
+      savedNote: "आपकी कोच चैट में सहेजा गया — कभी भी वहाँ जारी रखें।",
+    },
   },
   admin: {
     title: "उपयोगकर्ता विश्लेषण",
@@ -1400,6 +1421,13 @@ const te: Content = {
     history: "ఇటీవలి చాట్లు",
     noHistory: "ఇంకా సేవ్ చేసిన చాట్లు లేవు.",
     deleteChat: "చాట్ తొలగించండి",
+    partner: {
+      lede: "మీరు ఇప్పుడే రాసిన దానిపై కోచ్ స్పందన కావాలా?",
+      ask: "మీ కోచ్‌ను అడగండి",
+      needMore: "కొంచెం ఎక్కువ రాయండి, అప్పుడు కోచ్ స్పందించగలడు.",
+      again: "మళ్ళీ అడగండి",
+      savedNote: "మీ కోచ్ చాట్‌లలో సేవ్ అయ్యింది — ఎప్పుడైనా అక్కడ కొనసాగించండి.",
+    },
   },
   admin: {
     title: "వినియోగదారు విశ్లేషణ",
