@@ -36,13 +36,23 @@ export default function Assessment({
   const selected = answers[current];
   const isLast = current === total - 1;
 
-  const finish = () => {
-    const raw = questions.map((_, i) => (answers[i] ?? null));
+  const finish = (final: Record<number, number>) => {
+    const raw = questions.map((_, i) => (final[i] ?? null));
     const scores = computeScores(
-      questions.map((qq, i) => ({ question_idx: qq.idx, value: answers[i] ?? null })),
+      questions.map((qq, i) => ({ question_idx: qq.idx, value: final[i] ?? null })),
       questions.map((qq) => ({ idx: qq.idx, skill: qq.skill }))
     );
     onComplete(raw, scores);
+  };
+
+  // Answering advances on its own — a separate "Next" tap on a one-tap question
+  // is pure friction. The last answer finishes, and it must finish from the
+  // freshly-built map rather than `answers`, which has not re-rendered yet.
+  const pick = (n: number) => {
+    const next = { ...answers, [current]: n };
+    setAnswers(next);
+    if (isLast) finish(next);
+    else setCurrent((i) => i + 1);
   };
 
   return (
@@ -80,7 +90,7 @@ export default function Assessment({
             <button
               key={opt.n}
               className={`scale-opt ${selected === opt.n ? "sel" : ""}`}
-              onClick={() => setAnswers((prev) => ({ ...prev, [current]: opt.n }))}
+              onClick={() => pick(opt.n)}
             >
               <span className="n">{opt.n}</span>
               {opt.label}
@@ -88,12 +98,11 @@ export default function Assessment({
           ))}
         </div>
 
+        {/* Picking advances on its own, so the only control left is the way back
+            — for a mis-tap, or to change an answer. */}
         <div className="lesson-foot" style={{ border: "none", marginTop: 30, paddingTop: 0 }}>
           <button className="btn btn-soft" disabled={current === 0} onClick={() => setCurrent((i) => Math.max(0, i - 1))}>
             {a.previous}
-          </button>
-          <button className="btn btn-pri" disabled={!selected} onClick={() => (isLast ? finish() : setCurrent((i) => i + 1))}>
-            {isLast ? a.finish : a.next}
           </button>
         </div>
       </div>

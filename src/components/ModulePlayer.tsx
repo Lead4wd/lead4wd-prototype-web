@@ -12,6 +12,12 @@ import ReflectionPartner from "@/components/ReflectionPartner";
 
 const PASS_PCT = 60;
 
+// Screens answered by tapping one option. These advance themselves, so they get
+// no Continue button — everything else (reading screens, and anything the
+// learner types into) still needs one.
+const CHOICE_KINDS = new Set<Screen["kind"]>(["selfcheck", "scenario", "scenariopick", "commit"]);
+const isChoiceScreen = (s: Screen) => CHOICE_KINDS.has(s.kind);
+
 export type ModuleResult = {
   reflection: string;
   quizCorrect: number;
@@ -19,6 +25,15 @@ export type ModuleResult = {
   scorePct: number;
   attempts: QuestionAttempt[];
 };
+
+/**
+ * What the learner just chose, carried forward onto the NEXT screen.
+ *
+ * Choice screens advance the moment an option is tapped, so their coaching
+ * feedback would otherwise flash past unread. Instead it is shown at the top of
+ * the screen they land on, with a way back to change the answer.
+ */
+export type Recap = { choice: string; feedback?: string; best?: boolean };
 
 export type TrackEvent = {
   kind: EngagementKind;
@@ -51,6 +66,7 @@ export default function ModulePlayer({
   const [reflection, setReflection] = useState("");
   const [quiz, setQuiz] = useState<{ correct: number; total: number } | null>(null);
   const [attempts, setAttempts] = useState<Record<string, QuestionAttempt>>({});
+  const [recap, setRecap] = useState<Recap | null>(null);
 
   const screen = screens[idx];
   const isLast = idx === screens.length - 1;
@@ -66,6 +82,23 @@ export default function ModulePlayer({
 
   const recordAttempt = (key: string, a: QuestionAttempt) =>
     setAttempts((prev) => ({ ...prev, [key]: a }));
+
+  /** Move screens without carrying a stale recap onto the new one. */
+  const goTo = (next: number) => {
+    setRecap(null);
+    setIdx(next);
+  };
+
+  /**
+   * A choice screen was answered: advance immediately and show its feedback on
+   * the screen we land on. On the LAST screen there is nowhere to advance to, so
+   * the screen keeps its own in-place feedback and we do nothing here.
+   */
+  const answerAndAdvance = (r: Recap) => {
+    if (isLast) return;
+    setRecap(r);
+    setIdx((i) => i + 1);
+  };
 
   // ---- engagement tracking: time per screen + skip detection ----------------
   // Refs mirror current state so the unmount cleanup logs accurate values.
@@ -158,6 +191,28 @@ export default function ModulePlayer({
           </span>
         </div>
 
+        {recap && (
+          <div className="recap">
+            <div className="recap-top">
+              <span className="recap-label">{p.youChose}</span>
+              {/* The way back for a mis-tap — the answer screen is always the one
+                  immediately before this. */}
+              <button className="link-btn" onClick={() => goTo(Math.max(0, idx - 1))}>
+                {p.changeAnswer}
+              </button>
+            </div>
+            <p className="recap-choice">
+              {recap.choice}
+              {recap.best && (
+                <span className="best-badge">
+                  <Check /> {p.bestMove}
+                </span>
+              )}
+            </p>
+            {recap.feedback && <p className="recap-feedback">{recap.feedback}</p>}
+          </div>
+        )}
+
         <ScreenView
           key={idx}
           screen={screen}
@@ -167,6 +222,7 @@ export default function ModulePlayer({
           moduleId={module.id}
           reflection={reflection}
           setReflection={setReflection}
+          onAnswered={answerAndAdvance}
           onQuiz={(correct, total) => {
             setQuiz({ correct, total });
             gaEvent("quiz_scored", { module_id: module.id, correct, total });
@@ -182,12 +238,14 @@ export default function ModulePlayer({
           </span>
           <div style={{ display: "flex", gap: 12 }}>
             {idx > 0 && (
-              <button className="btn btn-soft" onClick={() => setIdx((i) => i - 1)}>
+              <button className="btn btn-soft" onClick={() => goTo(idx - 1)}>
                 {c.common.back}
               </button>
             )}
-            {!isLast && (
-              <button className="btn btn-pri" onClick={() => setIdx((i) => i + 1)}>
+            {/* Choice screens advance themselves, so Continue would be a second
+                way to do the same thing — and tapping it would skip the question. */}
+            {!isLast && !isChoiceScreen(screen) && (
+              <button className="btn btn-pri" onClick={() => goTo(idx + 1)}>
                 {p.continue}
               </button>
             )}
@@ -222,6 +280,7 @@ function ScreenView({
   moduleId,
   reflection,
   setReflection,
+  onAnswered,
   onQuiz,
   onAttempt,
 }: {
@@ -232,6 +291,7 @@ function ScreenView({
   moduleId: string;
   reflection: string;
   setReflection: (s: string) => void;
+  onAnswered: (r: Recap) => void;
   onQuiz: (correct: number, total: number) => void;
   onAttempt: (key: string, a: QuestionAttempt) => void;
 }) {
@@ -293,10 +353,20 @@ function ScreenView({
       return <ScreenDragDrop screen={screen} screenIdx={screenIdx} p={p} onResult={onQuiz} onAttempt={onAttempt} />;
 
     case "selfcheck":
-      return <ScreenSelfCheck screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} />;
+      return (
+        <ScreenSelfCheck screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} onAnswered={onAnswered} />
+      );
 
     case "scenario":
-      return <ScreenScenario screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
+      return (
+        <ScreenScenario
+          screen={screen}
+          screenIdx={screenIdx}
+          p={p}
+          onAttempt={onAttempt}
+          onAnswered={onAnswered}
+        />
+      );
 
     case "action":
       return (
@@ -344,7 +414,15 @@ function ScreenView({
       return <ScreenReveal screen={screen} p={p} />;
 
     case "scenariopick":
-      return <ScreenScenarioPick screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
+      return (
+        <ScreenScenarioPick
+          screen={screen}
+          screenIdx={screenIdx}
+          p={p}
+          onAttempt={onAttempt}
+          onAnswered={onAnswered}
+        />
+      );
 
     case "scriptbuilder":
       return (
@@ -371,7 +449,7 @@ function ScreenView({
       );
 
     case "commit":
-      return <ScreenCommit screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} />;
+      return <ScreenCommit screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} onAnswered={onAnswered} />;
 
     case "stakeholdermap":
       return <ScreenStakeholderMap screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
@@ -482,11 +560,15 @@ function ScreenSelfCheck({
   screen,
   screenIdx,
   onAttempt,
+  onAnswered,
 }: {
   screen: Extract<Screen, { kind: "selfcheck" }>;
   screenIdx: number;
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onAnswered: (r: Recap) => void;
 }) {
+  // `pick` still drives the in-place response, which is only ever seen when this
+  // is the module's last screen and there is nowhere to advance to.
   const [pick, setPick] = useState<number | null>(null);
   return (
     <div className="screen">
@@ -506,6 +588,7 @@ function ScreenSelfCheck({
                 response: o.text,
                 is_correct: null,
               });
+              onAnswered({ choice: o.text, feedback: o.response });
             }}
           >
             {o.text}
@@ -523,11 +606,13 @@ function ScreenScenario({
   screenIdx,
   p,
   onAttempt,
+  onAnswered,
 }: {
   screen: Extract<Screen, { kind: "scenario" }>;
   screenIdx: number;
   p: Content["player"];
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onAnswered: (r: Recap) => void;
 }) {
   const [pick, setPick] = useState<number | null>(null);
   return (
@@ -549,6 +634,7 @@ function ScreenScenario({
                 response: ch.text,
                 is_correct: !!ch.best,
               });
+              onAnswered({ choice: ch.text, feedback: ch.feedback, best: !!ch.best });
             }}
           >
             <span>{ch.text}</span>
@@ -627,9 +713,11 @@ function ScreenScenarioPick({
   screenIdx,
   p,
   onAttempt,
+  onAnswered,
 }: {
   screen: Extract<Screen, { kind: "scenariopick" }>;
   screenIdx: number;
+  onAnswered: (r: Recap) => void;
   p: Content["player"];
   onAttempt: (key: string, a: QuestionAttempt) => void;
 }) {
@@ -672,6 +760,9 @@ function ScreenScenarioPick({
                     response: ch.text,
                     is_correct: !!ch.best,
                   });
+                  // Only the inner choice advances — picking a path branches
+                  // within this screen and is not an answer.
+                  onAnswered({ choice: ch.text, feedback: ch.feedback, best: !!ch.best });
                 }}
               >
                 <span>{ch.text}</span>
@@ -865,10 +956,12 @@ function ScreenCommit({
   screen,
   screenIdx,
   onAttempt,
+  onAnswered,
 }: {
   screen: Extract<Screen, { kind: "commit" }>;
   screenIdx: number;
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onAnswered: (r: Recap) => void;
 }) {
   const [pick, setPick] = useState<number | null>(null);
   return (
@@ -892,6 +985,7 @@ function ScreenCommit({
                 response: o,
                 is_correct: null,
               });
+              onAnswered({ choice: o, feedback: screen.closing });
             }}
           >
             {o}

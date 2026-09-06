@@ -234,6 +234,8 @@ export type Content = {
     correct: string;
     incorrect: string;
     bestMove: string;
+    youChose: string;
+    changeAnswer: string;
     complete: string;
     counter: string; // "{n} / {total}"
     lockedMsg: string;
@@ -612,6 +614,8 @@ const en: Content = {
     correct: "Correct",
     incorrect: "Not quite — try the other bucket",
     bestMove: "Best move",
+    youChose: "You chose",
+    changeAnswer: "Change answer",
     complete: "Complete · keep streak 🔥",
     counter: "{n} / {total}",
     lockedMsg: "Answer the questions in this module to unlock the next one.",
@@ -989,6 +993,8 @@ const hi: Content = {
     correct: "सही",
     incorrect: "बिलकुल नहीं — दूसरी बकेट आज़माएँ",
     bestMove: "बेहतरीन कदम",
+    youChose: "आपने चुना",
+    changeAnswer: "उत्तर बदलें",
     complete: "पूर्ण करें · लय बनाए रखें 🔥",
     counter: "{n} / {total}",
     lockedMsg: "अगला मॉड्यूल खोलने के लिए इस मॉड्यूल के प्रश्नों के उत्तर दें।",
@@ -1366,6 +1372,8 @@ const te: Content = {
     correct: "సరైనది",
     incorrect: "సరికాదు — మరో బకెట్ ప్రయత్నించండి",
     bestMove: "ఉత్తమ ఎంపిక",
+    youChose: "మీరు ఎంచుకున్నది",
+    changeAnswer: "సమాధానం మార్చండి",
     complete: "పూర్తి చేయి · స్ట్రీక్ నిలుపు 🔥",
     counter: "{n} / {total}",
     lockedMsg: "తదుపరి మాడ్యూల్‌ను అన్‌లాక్ చేయడానికి ఈ మాడ్యూల్‌లోని ప్రశ్నలకు సమాధానం ఇవ్వండి.",
