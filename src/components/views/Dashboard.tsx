@@ -159,7 +159,9 @@ export default function Dashboard({
       {/* streak */}
       <div className="sectitle">
         <h3>{d.streakTitle}</h3>
-        <a onClick={() => go("journey")}>{d.seeJourney}</a>
+        <button type="button" className="sectitle-link" onClick={() => go("journey")}>
+          {d.seeJourney}
+        </button>
       </div>
       <div className="card">
         <div className="streakcal">
@@ -175,7 +177,9 @@ export default function Dashboard({
       {/* team pulse mini */}
       <div className="sectitle">
         <h3>{d.teamTitle}</h3>
-        <a onClick={() => go("team")}>{d.openTeam}</a>
+        <button type="button" className="sectitle-link" onClick={() => go("team")}>
+          {d.openTeam}
+        </button>
       </div>
       <div className="dash-grid">
         <div className="card pulse-mini">

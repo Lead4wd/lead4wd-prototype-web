@@ -113,9 +113,17 @@ export default function Home() {
       setProfile(prof);
       if (LANGUAGES.some((x) => x.code === prof.language)) setLanguage(prof.language as LanguageCode);
       if (prof.onboarded) {
-        const pr = await loadUserState();
+        // One retry: the common failure here is a phone waking up with the
+        // radio not yet back, which fixes itself in a second.
+        let pr = await loadUserState();
+        if (!pr && active) {
+          await new Promise((r) => setTimeout(r, 1200));
+          pr = await loadUserState();
+        }
         if (!active) return;
-        setProgress(pr);
+        // Still nothing: go in without overwriting what we have rather than
+        // replacing it with zeros, which reads as "all your progress is gone".
+        if (pr) setProgress(pr);
         setPhase("app");
       } else {
         setPhase("firstrun");

@@ -136,17 +136,17 @@ export async function updateProfile(
 }
 
 // ---------- per-user progress ----------
-export async function loadUserState(): Promise<Progress> {
-  const data = await apiGet<Progress>("/me/state");
-  return (
-    data ?? {
-      completedModules: [],
-      actionsTried: [],
-      reflections: {},
-      streak: 0,
-      scores: computeScores([], []),
-    }
-  );
+/**
+ * The user's stored progress, or null if it could not be loaded.
+ *
+ * Null rather than a zeroed Progress on purpose: an empty result is
+ * indistinguishable from a brand-new account, so a flaky connection used to
+ * show a returning manager an empty dashboard as though their work were gone.
+ * The caller decides what to do about a failure; it must not be guessed at
+ * here.
+ */
+export async function loadUserState(): Promise<Progress | null> {
+  return apiGet<Progress>("/me/state");
 }
 
 export async function saveOnboardingAnswers(answers: (number | null)[]): Promise<void> {
