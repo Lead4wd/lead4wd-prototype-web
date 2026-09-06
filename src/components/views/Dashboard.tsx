@@ -11,6 +11,7 @@ import {
 } from "@/lib/progress";
 import { fmt, levelKey, barClass } from "@/lib/format";
 import { Clock, Bolt } from "@/components/icons";
+import CheckIn from "@/components/CheckIn";
 
 const R = 46;
 const CIRC = 2 * Math.PI * R;
@@ -68,6 +69,9 @@ export default function Dashboard({
           {d.continueCta}
         </button>
       </div>
+
+      {/* Renders nothing unless the API says a plan follow-up is due. */}
+      <CheckIn c={c} />
 
       <div className="dash-grid">
         {/* next best step → current module */}

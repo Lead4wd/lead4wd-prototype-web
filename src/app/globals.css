@@ -319,6 +319,22 @@ button{font-family:inherit;cursor:pointer}
 .coach-disclaimer{flex:0 0 auto;margin-top:10px;font-size:12px;color:var(--ink-faint);font-weight:500;text-align:center}
 @media(max-width:860px){ .coach-wrap{--coach-chrome:160px} }
 
+/* ---- PROACTIVE CHECK-IN (dashboard nudge) ---- */
+/* Sits above the dashboard grid, reading as the coach getting in touch
+   rather than as another metric tile. */
+.checkin{background:var(--halo);border:1.5px solid color-mix(in srgb,var(--primary) 38%,transparent);border-left-width:4px;border-radius:16px;padding:17px 19px;margin-bottom:22px}
+.checkin-head{display:flex;align-items:center;gap:10px}
+.checkin-when{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.checkin-dismiss{margin-left:auto;background:none;border:none;font-size:20px;line-height:1;color:var(--ink-faint);padding:0 4px}
+.checkin-dismiss:hover{color:var(--ink)}
+.checkin-lede{margin-top:9px;font-family:var(--display);font-size:19px;font-weight:800;letter-spacing:-.02em;color:var(--ink);line-height:1.25}
+.checkin-commitments{list-style:none;margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.checkin-commitments li{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 13px;font-size:14px;font-weight:500;color:var(--ink-soft);line-height:1.45}
+.checkin-area{display:block;font-family:var(--mono);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--primary);margin-bottom:3px}
+.checkin-cta{margin-top:14px}
+.checkin-thread{display:flex;flex-direction:column;gap:14px;margin-top:15px}
+/* Inline in a card, so the composer is a plain row rather than a pinned footer. */
+.checkin-thread .coach-composer{margin-top:4px;padding-top:0;border-top:none;background:transparent}
 /* ---- PRACTICE / ROLE-PLAY ---- */
 .rp-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
 /* Whole card is the button, so the setup is readable before committing. */

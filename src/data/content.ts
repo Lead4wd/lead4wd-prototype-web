@@ -296,6 +296,14 @@ export type Content = {
       savedNote: string;
     };
   };
+  checkin: {
+    lede: string;
+    daysAgo: string; // "{n} days ago"
+    cta: string;
+    opener: string;
+    placeholder: string;
+    dismiss: string;
+  };
   practice: {
     eyebrow: string;
     title: string;
@@ -698,6 +706,14 @@ const en: Content = {
       savedNote: "Saved to your coach chats — carry it on there any time.",
     },
   },
+  checkin: {
+    lede: "You set yourself a plan. How has it actually been going?",
+    daysAgo: "{n} days ago",
+    cta: "Talk it through",
+    opener: "Let's talk about how my plan has been going.",
+    placeholder: "Tell your coach how it went...",
+    dismiss: "Not now",
+  },
   practice: {
     eyebrow: "Practice",
     title: "Practice a conversation",
@@ -1095,6 +1111,14 @@ const hi: Content = {
       savedNote: "आपकी कोच चैट में सहेजा गया — कभी भी वहाँ जारी रखें।",
     },
   },
+  checkin: {
+    lede: "आपने एक योजना बनाई थी। असल में वह कैसी चल रही है?",
+    daysAgo: "{n} दिन पहले",
+    cta: "इस पर बात करें",
+    opener: "आइए बात करते हैं कि मेरी योजना कैसी चल रही है।",
+    placeholder: "अपने कोच को बताएं कि कैसा रहा...",
+    dismiss: "अभी नहीं",
+  },
   practice: {
     eyebrow: "अभ्यास",
     title: "बातचीत का अभ्यास करें",
@@ -1491,6 +1515,14 @@ const te: Content = {
       again: "మళ్ళీ అడగండి",
       savedNote: "మీ కోచ్ చాట్‌లలో సేవ్ అయ్యింది — ఎప్పుడైనా అక్కడ కొనసాగించండి.",
     },
+  },
+  checkin: {
+    lede: "మీరు ఒక ప్రణాళిక పెట్టుకున్నారు. నిజంగా అది ఎలా సాగుతోంది?",
+    daysAgo: "{n} రోజుల క్రితం",
+    cta: "దీని గురించి మాట్లాడండి",
+    opener: "నా ప్రణాళిక ఎలా సాగుతోందో మాట్లాడుకుందాం.",
+    placeholder: "ఎలా జరిగిందో మీ కోచ్‌కు చెప్పండి...",
+    dismiss: "ఇప్పుడు కాదు",
   },
   practice: {
     eyebrow: "సాధన",

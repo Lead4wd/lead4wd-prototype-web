@@ -374,6 +374,20 @@ export async function fetchRolePlays(): Promise<RolePlayScenario[]> {
  */
 export type CoachRolePlay = { scenarioId: string; phase?: "play" | "debrief" };
 
+/** A commitment the manager made in a plan builder, and whether it's due a follow-up. */
+export type CheckInState = {
+  due: boolean;
+  commitments: { area: string; detail: string }[];
+  cadence?: string;
+  moduleTitle?: string;
+  committedAt?: string;
+  daysSince: number;
+};
+
+export async function fetchCheckIn(): Promise<CheckInState | null> {
+  return apiGet<CheckInState>("/me/ai/checkin");
+}
+
 /**
  * Send one message and stream the reply.
  *
@@ -390,6 +404,7 @@ export async function streamCoachReply(
     conversationId?: string;
     artifact?: CoachArtifact;
     roleplay?: CoachRolePlay;
+    checkin?: boolean;
     onConversation?: (id: string) => void;
     onDelta: (text: string) => void;
     signal?: AbortSignal;
@@ -400,11 +415,12 @@ export async function streamCoachReply(
       method: "POST",
       headers: { ...(await authHeaders()), "Content-Type": "application/json" },
       body: JSON.stringify({
-        mode: opts.roleplay ? "roleplay" : opts.artifact ? "reflect" : "coach",
+        mode: opts.roleplay ? "roleplay" : opts.artifact ? "reflect" : opts.checkin ? "checkin" : "coach",
         message,
         conversationId: opts.conversationId,
         artifact: opts.artifact,
         roleplay: opts.roleplay,
+        checkin: opts.checkin,
       }),
       signal: opts.signal,
     });
