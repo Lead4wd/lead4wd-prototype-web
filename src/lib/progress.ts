@@ -16,6 +16,7 @@ export type View =
   | "assessment"
   | "analytics"
   | "coach"
+  | "practice"
   | "admin";
 
 export type Progress = {

@@ -319,6 +319,21 @@ button{font-family:inherit;cursor:pointer}
 .coach-disclaimer{flex:0 0 auto;margin-top:10px;font-size:12px;color:var(--ink-faint);font-weight:500;text-align:center}
 @media(max-width:860px){ .coach-wrap{--coach-chrome:160px} }
 
+/* ---- PRACTICE / ROLE-PLAY ---- */
+.rp-list{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+/* Whole card is the button, so the setup is readable before committing. */
+.rp-card{display:flex;flex-direction:column;align-items:flex-start;gap:5px;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:15px;padding:16px 18px;transition:border-color .15s,background .15s}
+.rp-card:hover{border-color:var(--primary);background:var(--halo)}
+.rp-card-label{font-family:var(--display);font-size:17px;font-weight:800;color:var(--ink);letter-spacing:-.01em}
+.rp-card-module{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)}
+.rp-card-setup{font-size:14px;font-weight:500;color:var(--ink-soft);line-height:1.5;margin-top:4px}
+.rp-card-go{margin-top:9px;font-size:13px;font-weight:800;color:var(--primary)}
+/* The situation stays visible above the thread — it is what they are playing into. */
+.rp-setup{margin-top:10px;background:var(--surface-2);border-left:4px solid var(--primary);border-radius:0 11px 11px 0;padding:11px 14px;font-size:14px;font-weight:500;color:var(--ink-soft);line-height:1.5}
+.rp-actions{display:flex;justify-content:flex-end;margin-top:9px}
+.rp-actions .btn{padding:8px 14px;font-size:13px}
+.rp-done{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+.rp-done .partner-hint{margin-top:0}
 /* ---- REFLECTION PARTNER (in-lesson coach) ---- */
 /* Reads as the coach leaning in next to what they wrote, so it is tinted and
    inset rather than presented as another form field. */

@@ -75,12 +75,13 @@ export type Content = {
     assessment: string;
     analytics: string; // user-facing analytics page
     coach: string; // AI coach nav item
+    practice: string; // role-play practice nav item
     adminPanel: string; // admin panel nav item
   };
   topbar: { search: string; streakLabel: string }; // streakLabel: "{n}-day streak"
   profile: { name: string; role: string };
   pageTitles: Record<
-    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment" | "analytics" | "coach" | "admin",
+    "dashboard" | "journey" | "lesson" | "results" | "team" | "assessment" | "analytics" | "coach" | "practice" | "admin",
     string
   >;
   levels: { strength: string; developing: string; focus: string };
@@ -295,6 +296,22 @@ export type Content = {
       savedNote: string;
     };
   };
+  practice: {
+    eyebrow: string;
+    title: string;
+    lede: string;
+    none: string;
+    start: string;
+    change: string;
+    themLabel: string;
+    openingHint: string;
+    placeholder: string;
+    debrief: string;
+    debriefAsk: string;
+    doneNote: string;
+    again: string;
+    disclaimer: string;
+  };
   admin: {
     title: string;
     lede: string;
@@ -365,6 +382,7 @@ const en: Content = {
     assessment: "Re-take check",
     analytics: "My analytics",
     coach: "AI coach",
+    practice: "Practice",
     adminPanel: "User analytics",
   },
   topbar: { search: "Search lessons & skills", streakLabel: "{n}-day streak" },
@@ -378,6 +396,7 @@ const en: Content = {
     assessment: "Skills check",
     analytics: "My analytics",
     coach: "Ask your coach",
+    practice: "Practice a conversation",
     admin: "Admin · user analytics",
   },
   levels: { strength: "Strength", developing: "Developing", focus: "Focus area" },
@@ -679,6 +698,22 @@ const en: Content = {
       savedNote: "Saved to your coach chats — carry it on there any time.",
     },
   },
+  practice: {
+    eyebrow: "Practice",
+    title: "Practice a conversation",
+    lede: "Rehearse a hard conversation before you have it for real. You play yourself; the coach plays the other person.",
+    none: "No rehearsals available yet.",
+    start: "Start rehearsal",
+    change: "Change scenario",
+    themLabel: "Them",
+    openingHint: "Say your opening line, exactly as you would say it out loud.",
+    placeholder: "Type what you would say...",
+    debrief: "End and get feedback",
+    debriefAsk: "That's where I'd like to stop. How did I do?",
+    doneNote: "Rehearsal finished. Saved to your coach chats.",
+    again: "Run it again",
+    disclaimer: "A rehearsal, not the real conversation. The coach is not a therapist, lawyer or HR authority.",
+  },
   admin: {
     title: "User analytics",
     lede: "Every learner's progress, responses, time, and skips.",
@@ -749,6 +784,7 @@ const hi: Content = {
     assessment: "दोबारा जाँच",
     analytics: "मेरा विश्लेषण",
     coach: "AI कोच",
+    practice: "अभ्यास",
     adminPanel: "उपयोगकर्ता विश्लेषण",
   },
   topbar: { search: "पाठ और कौशल खोजें", streakLabel: "{n}-दिन की लय" },
@@ -762,6 +798,7 @@ const hi: Content = {
     assessment: "कौशल जाँच",
     analytics: "मेरा विश्लेषण",
     coach: "अपने कोच से पूछें",
+    practice: "बातचीत का अभ्यास करें",
     admin: "एडमिन · उपयोगकर्ता विश्लेषण",
   },
   levels: { strength: "मज़बूती", developing: "विकासशील", focus: "फोकस क्षेत्र" },
@@ -1058,6 +1095,22 @@ const hi: Content = {
       savedNote: "आपकी कोच चैट में सहेजा गया — कभी भी वहाँ जारी रखें।",
     },
   },
+  practice: {
+    eyebrow: "अभ्यास",
+    title: "बातचीत का अभ्यास करें",
+    lede: "असली बातचीत से पहले मुश्किल बातचीत का अभ्यास करें। आप खुद बनें; कोच सामने वाले का किरदार निभाएगा।",
+    none: "अभी कोई अभ्यास उपलब्ध नहीं है।",
+    start: "अभ्यास शुरू करें",
+    change: "परिदृश्य बदलें",
+    themLabel: "वे",
+    openingHint: "अपनी पहली बात वैसे ही लिखें जैसे आप बोलेंगे।",
+    placeholder: "आप क्या कहेंगे...",
+    debrief: "समाप्त करें और फीडबैक लें",
+    debriefAsk: "मैं यहीं रुकना चाहूँगा। मैंने कैसा किया?",
+    doneNote: "अभ्यास पूरा हुआ। आपकी कोच चैट में सहेजा गया।",
+    again: "फिर से करें",
+    disclaimer: "यह अभ्यास है, असली बातचीत नहीं। कोच थेरेपिस्ट, वकील या HR अधिकारी नहीं है।",
+  },
   admin: {
     title: "उपयोगकर्ता विश्लेषण",
     lede: "हर सीखने वाले की प्रगति, उत्तर, समय और छोड़े गए हिस्से।",
@@ -1128,6 +1181,7 @@ const te: Content = {
     assessment: "మళ్లీ తనిఖీ",
     analytics: "నా విశ్లేషణ",
     coach: "AI కోచ్",
+    practice: "సాధన",
     adminPanel: "వినియోగదారు విశ్లేషణ",
   },
   topbar: { search: "పాఠాలు & నైపుణ్యాలను వెతకండి", streakLabel: "{n}-రోజుల స్ట్రీక్" },
@@ -1141,6 +1195,7 @@ const te: Content = {
     assessment: "నైపుణ్య తనిఖీ",
     analytics: "నా విశ్లేషణ",
     coach: "మీ కోచ్‌ను అడగండి",
+    practice: "సంభాషణ సాధన చేయండి",
     admin: "అడ్మిన్ · వినియోగదారు విశ్లేషణ",
   },
   levels: { strength: "బలం", developing: "అభివృద్ధి", focus: "దృష్టి ప్రాంతం" },
@@ -1436,6 +1491,22 @@ const te: Content = {
       again: "మళ్ళీ అడగండి",
       savedNote: "మీ కోచ్ చాట్‌లలో సేవ్ అయ్యింది — ఎప్పుడైనా అక్కడ కొనసాగించండి.",
     },
+  },
+  practice: {
+    eyebrow: "సాధన",
+    title: "సంభాషణ సాధన చేయండి",
+    lede: "నిజమైన సంభాషణకు ముందు కష్టమైన సంభాషణను సాధన చేయండి. మీరు మీరుగానే ఉంటారు; కోచ్ అవతలి వ్యక్తి పాత్ర పోషిస్తాడు.",
+    none: "ఇంకా సాధనలు అందుబాటులో లేవు.",
+    start: "సాధన ప్రారంభించండి",
+    change: "సన్నివేశం మార్చండి",
+    themLabel: "వారు",
+    openingHint: "మీరు మాట్లాడే విధంగానే మీ మొదటి వాక్యం రాయండి.",
+    placeholder: "మీరు ఏమి చెబుతారు...",
+    debrief: "ముగించి ఫీడ్‌బ్యాక్ పొందండి",
+    debriefAsk: "ఇక్కడ ఆపాలనుకుంటున్నాను. నేను ఎలా చేశాను?",
+    doneNote: "సాధన పూర్తయింది. మీ కోచ్ చాట్‌లలో సేవ్ అయ్యింది.",
+    again: "మళ్ళీ చేయండి",
+    disclaimer: "ఇది సాధన, నిజమైన సంభాషణ కాదు. కోచ్ థెరపిస్ట్, న్యాయవాది లేదా HR అధికారి కాదు.",
   },
   admin: {
     title: "వినియోగదారు విశ్లేషణ",

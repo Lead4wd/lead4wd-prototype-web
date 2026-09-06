@@ -353,6 +353,27 @@ export type CoachArtifact = {
   prompt?: string;
 };
 
+/** A rehearsal drawn from the curriculum's own scenario screens. */
+export type RolePlayScenario = {
+  id: string;
+  moduleId: string;
+  moduleTitle: string;
+  label: string;
+  setup: string;
+  goal: string;
+};
+
+export async function fetchRolePlays(): Promise<RolePlayScenario[]> {
+  return (await apiGet<{ scenarios: RolePlayScenario[] }>("/ai/roleplays"))?.scenarios ?? [];
+}
+
+/**
+ * Which rehearsal, and whether the model is still in character ("play") or
+ * reviewing how it went ("debrief"). Only the id travels — the persona and
+ * situation are resolved server-side from the curriculum.
+ */
+export type CoachRolePlay = { scenarioId: string; phase?: "play" | "debrief" };
+
 /**
  * Send one message and stream the reply.
  *
@@ -368,6 +389,7 @@ export async function streamCoachReply(
   opts: {
     conversationId?: string;
     artifact?: CoachArtifact;
+    roleplay?: CoachRolePlay;
     onConversation?: (id: string) => void;
     onDelta: (text: string) => void;
     signal?: AbortSignal;
@@ -378,10 +400,11 @@ export async function streamCoachReply(
       method: "POST",
       headers: { ...(await authHeaders()), "Content-Type": "application/json" },
       body: JSON.stringify({
-        mode: opts.artifact ? "reflect" : "coach",
+        mode: opts.roleplay ? "roleplay" : opts.artifact ? "reflect" : "coach",
         message,
         conversationId: opts.conversationId,
         artifact: opts.artifact,
+        roleplay: opts.roleplay,
       }),
       signal: opts.signal,
     });

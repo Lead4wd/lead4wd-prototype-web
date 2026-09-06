@@ -14,6 +14,7 @@ import SkillsProfile from "@/components/views/SkillsProfile";
 import TeamPulse from "@/components/views/TeamPulse";
 import Analytics from "@/components/views/Analytics";
 import AiCoach from "@/components/views/AiCoach";
+import RolePlay from "@/components/views/RolePlay";
 import AdminPanel from "@/components/views/AdminPanel";
 import AccountSettings from "@/components/AccountSettings";
 import CookieConsent from "@/components/CookieConsent";
@@ -114,6 +115,17 @@ const NAV: NavSection[] = [
           </svg>
         ),
       },
+      {
+        view: "practice",
+        key: "practice",
+        // Two speech bubbles facing each other — a rehearsal, not a monologue.
+        icon: (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M3 8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H7l-4 3z" />
+            <path d="M17 10h2a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v3l-3-3h-2" />
+          </svg>
+        ),
+      },
     ],
   },
 ];
@@ -137,6 +149,7 @@ function searchIndex(c: Content, modules: ManagerModule[]): { label: string; vie
     { label: c.nav.assessment, view: "assessment", tag: c.nav.insight },
     { label: c.nav.analytics, view: "analytics", tag: c.nav.insight },
     { label: c.nav.coach, view: "coach", tag: c.nav.insight },
+    { label: c.nav.practice, view: "practice", tag: c.nav.insight },
   ];
   const skills = SKILL_ORDER.map((id) => ({
     label: c.skillNames[id],
@@ -382,6 +395,7 @@ export default function AppShell({
             {view === "team" && <TeamPulse c={c} />}
             {view === "analytics" && <Analytics c={c} userId={profile.id} modules={modules} />}
             {view === "coach" && <AiCoach c={c} />}
+            {view === "practice" && <RolePlay c={c} />}
             {view === "admin" && profile.is_admin && <AdminPanel c={c} modules={modules} />}
             {view === "assessment" && (
               <Assessment
