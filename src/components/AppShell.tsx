@@ -22,7 +22,7 @@ import type { AssessmentQuestion, ProfileRow } from "@/lib/data";
 
 type NavSection = {
   group: "coaching" | "insight";
-  items: { view: View; key: keyof Content["nav"]; badge?: boolean; icon: React.ReactNode }[];
+  items: { view: View; key: keyof Content["nav"]; icon: React.ReactNode }[];
 };
 
 const NAV: NavSection[] = [
@@ -257,7 +257,6 @@ export default function AppShell({
                 >
                   {item.icon}
                   {c.nav[item.key]}
-                  {item.badge && <span className="badge">{c.nav.journeyBadge}</span>}
                 </button>
               ))}
             </Fragment>

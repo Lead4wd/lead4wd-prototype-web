@@ -41,7 +41,7 @@ export default function AccountSettings({
     setBusy(true);
     setMsg(null);
     const patch = { display_name: name.trim() || null, language };
-    await updateProfile(profile.id, patch);
+    await updateProfile(patch);
     onUpdated(patch);
     setMsg(ac.saved);
     setBusy(false);

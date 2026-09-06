@@ -98,7 +98,7 @@ export default function Home() {
       const u: SessionUser = { id: session.user.id, email: session.user.email ?? null };
       setUser(u);
       const prof =
-        (await loadProfile(u.id)) ??
+        (await loadProfile()) ??
         ({
           id: u.id,
           display_name: u.email?.split("@")[0] ?? null,
@@ -113,7 +113,7 @@ export default function Home() {
       setProfile(prof);
       if (LANGUAGES.some((x) => x.code === prof.language)) setLanguage(prof.language as LanguageCode);
       if (prof.onboarded) {
-        const pr = await loadUserState(u.id);
+        const pr = await loadUserState();
         if (!active) return;
         setProgress(pr);
         setPhase("app");
@@ -156,7 +156,7 @@ export default function Home() {
     } catch {
       /* ignore */
     }
-    if (user) void updateProfile(user.id, { language: l });
+    if (user) void updateProfile({ language: l });
   };
 
   const handleFirstRun = async (data: {
@@ -166,9 +166,9 @@ export default function Home() {
   }) => {
     if (!user) return;
     await Promise.all([
-      saveOnboardingAnswers(user.id, data.onboardingAnswers),
-      saveAssessmentAnswers(user.id, data.assessmentAnswers),
-      updateProfile(user.id, { onboarded: true }),
+      saveOnboardingAnswers(data.onboardingAnswers),
+      saveAssessmentAnswers(data.assessmentAnswers),
+      updateProfile({ onboarded: true }),
     ]);
     setProfile((p) => (p ? { ...p, onboarded: true } : p));
     setProgress((prev) => ({ ...prev, scores: data.scores }));
@@ -180,7 +180,7 @@ export default function Home() {
     const already = progress.completedModules.includes(moduleId);
     const optimistic = completeModule(progress, moduleId, result.reflection);
     setProgress(optimistic);
-    await saveModuleCompletion(user.id, moduleId, {
+    await saveModuleCompletion(moduleId, {
       quizCorrect: result.quizCorrect,
       quizTotal: result.quizTotal,
       scorePct: result.scorePct,
@@ -194,7 +194,7 @@ export default function Home() {
   const handleSubmitAssessment = async (answers: (number | null)[], scores: Record<SkillId, number>) => {
     if (!user) return;
     setProgress((prev) => ({ ...prev, scores }));
-    await saveAssessmentAnswers(user.id, answers);
+    await saveAssessmentAnswers(answers);
   };
 
   const handleProfileUpdated = (patch: Partial<ProfileRow>) => {
@@ -202,7 +202,7 @@ export default function Home() {
   };
 
   const handleTrack = (ev: TrackEvent) => {
-    if (user) void track(user.id, ev);
+    if (user) void track(ev);
   };
 
   // ---- render ----

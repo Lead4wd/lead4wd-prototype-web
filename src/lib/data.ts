@@ -125,19 +125,18 @@ export type ProfileRow = {
   is_admin: boolean;
 };
 
-export async function loadProfile(_userId: string): Promise<ProfileRow | null> {
+export async function loadProfile(): Promise<ProfileRow | null> {
   return apiGet<ProfileRow>("/me/profile");
 }
 
 export async function updateProfile(
-  _userId: string,
   patch: Partial<Pick<ProfileRow, "display_name" | "role" | "language" | "onboarded" | "streak">>
 ): Promise<void> {
   await apiSend("PATCH", "/me/profile", patch);
 }
 
 // ---------- per-user progress ----------
-export async function loadUserState(_userId: string): Promise<Progress> {
+export async function loadUserState(): Promise<Progress> {
   const data = await apiGet<Progress>("/me/state");
   return (
     data ?? {
@@ -150,11 +149,11 @@ export async function loadUserState(_userId: string): Promise<Progress> {
   );
 }
 
-export async function saveOnboardingAnswers(_userId: string, answers: (number | null)[]): Promise<void> {
+export async function saveOnboardingAnswers(answers: (number | null)[]): Promise<void> {
   await apiSend("PUT", "/me/onboarding-answers", { answers });
 }
 
-export async function saveAssessmentAnswers(_userId: string, answers: (number | null)[]): Promise<void> {
+export async function saveAssessmentAnswers(answers: (number | null)[]): Promise<void> {
   await apiSend("PUT", "/me/assessment-answers", { answers });
 }
 
@@ -167,7 +166,6 @@ export type QuestionAttempt = {
 };
 
 export async function saveModuleCompletion(
-  _userId: string,
   moduleId: string,
   data: {
     quizCorrect: number;
@@ -190,7 +188,6 @@ export async function deleteAccount(): Promise<boolean> {
 export type EngagementKind = "screen_view" | "screen_skip" | "module_start" | "module_complete";
 
 export async function track(
-  _userId: string,
   ev: {
     kind: EngagementKind;
     moduleId?: string | null;
@@ -232,7 +229,7 @@ const EMPTY_ANALYTICS: UserAnalytics = {
   timeByModule: [],
 };
 
-export async function loadUserAnalytics(_userId: string): Promise<UserAnalytics> {
+export async function loadUserAnalytics(): Promise<UserAnalytics> {
   return (await apiGet<UserAnalytics>("/me/analytics")) ?? EMPTY_ANALYTICS;
 }
 
@@ -315,8 +312,8 @@ export type GaSummary =
       daily: { date: string; activeUsers: number }[];
     };
 
-export async function fetchGaSummary(scope: "user" | "admin"): Promise<GaSummary> {
-  return (await apiGet<GaSummary>(`/analytics/ga?scope=${scope}`)) ?? { configured: false };
+export async function fetchGaSummary(): Promise<GaSummary> {
+  return (await apiGet<GaSummary>("/analytics/ga")) ?? { configured: false };
 }
 
 // ---------- AI coach ----------
@@ -324,8 +321,16 @@ export async function fetchGaSummary(scope: "user" | "admin"): Promise<GaSummary
 // it reads the SSE body incrementally and hands each delta to onDelta.
 export type CoachMessage = { role: "user" | "assistant"; content: string };
 
+// Whether the coach is switched on is server config, not user state: it cannot
+// change while the tab is open. The reflection partner mounts on every reflect,
+// script and plan screen, so without this each lesson fired a fresh round trip
+// per screen just to learn the same answer. Cache the promise, not the value, so
+// components mounting together share one request.
+let aiStatus: Promise<boolean> | null = null;
+
 export async function fetchAiStatus(): Promise<boolean> {
-  return (await apiGet<{ configured: boolean }>("/ai/status"))?.configured ?? false;
+  aiStatus ??= apiGet<{ configured: boolean }>("/ai/status").then((r) => r?.configured ?? false);
+  return aiStatus;
 }
 
 export type CoachConversation = { id: string; title: string; updatedAt: string };
@@ -414,8 +419,9 @@ export async function streamCoachReply(
     const res = await fetch(`${API_BASE}/me/ai`, {
       method: "POST",
       headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+      // No `mode` here on purpose: the server derives it from what this payload
+      // actually carries, so the two can never disagree.
       body: JSON.stringify({
-        mode: opts.roleplay ? "roleplay" : opts.artifact ? "reflect" : opts.checkin ? "checkin" : "coach",
         message,
         conversationId: opts.conversationId,
         artifact: opts.artifact,

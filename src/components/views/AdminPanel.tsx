@@ -34,7 +34,7 @@ export default function AdminPanel({ c, modules }: { c: Content; modules: Manage
   useEffect(() => {
     let active = true;
     void fetchAdminOverview().then((o) => active && setOverview(o));
-    void fetchGaSummary("admin").then((g) => active && setGa(g));
+    void fetchGaSummary().then((g) => active && setGa(g));
     return () => {
       active = false;
     };

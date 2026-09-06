@@ -68,7 +68,6 @@ export type Content = {
     admin: string; // admin nav-group label
     home: string;
     journey: string;
-    journeyBadge: string;
     lesson: string;
     results: string;
     team: string;
@@ -383,7 +382,6 @@ const en: Content = {
     admin: "Admin",
     home: "Home",
     journey: "My journey",
-    journeyBadge: "W2",
     lesson: "Today's lesson",
     results: "Skills profile",
     team: "Team Pulse",
@@ -793,7 +791,6 @@ const hi: Content = {
     admin: "एडमिन",
     home: "होम",
     journey: "मेरी यात्रा",
-    journeyBadge: "स2",
     lesson: "आज का पाठ",
     results: "कौशल प्रोफ़ाइल",
     team: "टीम पल्स",
@@ -1198,7 +1195,6 @@ const te: Content = {
     admin: "అడ్మిన్",
     home: "హోమ్",
     journey: "నా ప్రయాణం",
-    journeyBadge: "వా2",
     lesson: "నేటి పాఠం",
     results: "నైపుణ్య ప్రొఫైల్",
     team: "టీమ్ పల్స్",

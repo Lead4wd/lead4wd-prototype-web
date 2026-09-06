@@ -83,6 +83,19 @@ export default function ModulePlayer({
   const recordAttempt = (key: string, a: QuestionAttempt) =>
     setAttempts((prev) => ({ ...prev, [key]: a }));
 
+  /**
+   * Un-record an answer. Screens that let the learner delete a row need this:
+   * without it a plan item they removed would still be saved, and the coach
+   * would follow up on a commitment they had explicitly taken back.
+   */
+  const dropAttempt = (key: string) =>
+    setAttempts((prev) => {
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+
   /** Move screens without carrying a stale recap onto the new one. */
   const goTo = (next: number) => {
     setRecap(null);
@@ -148,7 +161,7 @@ export default function ModulePlayer({
   }, [idx]);
 
   const retake = () => {
-    setIdx(0);
+    goTo(0);
     setQuiz(null);
     setReflection("");
     setAttempts({});
@@ -228,6 +241,7 @@ export default function ModulePlayer({
             gaEvent("quiz_scored", { module_id: module.id, correct, total });
           }}
           onAttempt={recordAttempt}
+          onDropAttempt={dropAttempt}
         />
 
         {gateActive && <div className="gate">{attempted ? fmt(p.retakeMsg, { pct: scorePct }) : p.lockedMsg}</div>}
@@ -255,7 +269,7 @@ export default function ModulePlayer({
               </button>
             )}
             {isLast && !passed && !attempted && (
-              <button className="btn btn-pri" onClick={() => setIdx(dragIdx >= 0 ? dragIdx : 0)}>
+              <button className="btn btn-pri" onClick={() => goTo(dragIdx >= 0 ? dragIdx : 0)}>
                 {p.goToQuestions}
               </button>
             )}
@@ -283,6 +297,7 @@ function ScreenView({
   onAnswered,
   onQuiz,
   onAttempt,
+  onDropAttempt,
 }: {
   screen: Screen;
   screenIdx: number;
@@ -294,6 +309,7 @@ function ScreenView({
   onAnswered: (r: Recap) => void;
   onQuiz: (correct: number, total: number) => void;
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onDropAttempt: (key: string) => void;
 }) {
   switch (screen.kind) {
     case "hook":
@@ -391,7 +407,12 @@ function ScreenView({
       return (
         <div className="screen">
           <h2 className="screen-h">{screen.title}</h2>
-          <ScreenReflectScale options={screen.scaleOptions} question={screen.scaleQuestion} />
+          <ScreenReflectScale
+            options={screen.scaleOptions}
+            question={screen.scaleQuestion}
+            screenIdx={screenIdx}
+            onAttempt={onAttempt}
+          />
           <div className="reflect-card" style={{ marginTop: 18 }}>
             <h4>{screen.textPrompt}</h4>
             <textarea
@@ -445,6 +466,7 @@ function ScreenView({
           p={p}
           moduleId={moduleId}
           onAttempt={onAttempt}
+          onDropAttempt={onDropAttempt}
         />
       );
 
@@ -452,7 +474,15 @@ function ScreenView({
       return <ScreenCommit screen={screen} screenIdx={screenIdx} onAttempt={onAttempt} onAnswered={onAnswered} />;
 
     case "stakeholdermap":
-      return <ScreenStakeholderMap screen={screen} screenIdx={screenIdx} p={p} onAttempt={onAttempt} />;
+      return (
+        <ScreenStakeholderMap
+          screen={screen}
+          screenIdx={screenIdx}
+          p={p}
+          onAttempt={onAttempt}
+          onDropAttempt={onDropAttempt}
+        />
+      );
   }
 }
 
@@ -653,14 +683,40 @@ function ScreenScenario({
 }
 
 // ---------------------------------------------------------------------------
-function ScreenReflectScale({ options, question }: { options: string[]; question: string }) {
+// The confidence scale above the written reflection. Its answer is recorded like
+// any other: it is the one number on this screen, and it was previously asked,
+// tapped, highlighted — and then discarded without ever being saved.
+function ScreenReflectScale({
+  options,
+  question,
+  screenIdx,
+  onAttempt,
+}: {
+  options: string[];
+  question: string;
+  screenIdx: number;
+  onAttempt: (key: string, a: QuestionAttempt) => void;
+}) {
   const [pick, setPick] = useState<number | null>(null);
   return (
     <div className="scale-block">
       <p className="screen-prompt">{question}</p>
       <div className="scale-chips">
         {options.map((o, i) => (
-          <button key={i} className={`scale-chip ${pick === i ? "on" : ""}`} onClick={() => setPick(i)}>
+          <button
+            key={i}
+            className={`scale-chip ${pick === i ? "on" : ""}`}
+            onClick={() => {
+              setPick(i);
+              onAttempt(`${screenIdx}:scale`, {
+                screen_idx: screenIdx,
+                kind: "reflectscale",
+                prompt: question,
+                response: o,
+                is_correct: null,
+              });
+            }}
+          >
             {o}
           </button>
         ))}
@@ -854,6 +910,7 @@ function ScreenPlanBuilder({
   p,
   moduleId,
   onAttempt,
+  onDropAttempt,
 }: {
   screen: Extract<Screen, { kind: "planbuilder" }>;
   screenIdx: number;
@@ -861,25 +918,43 @@ function ScreenPlanBuilder({
   p: Content["player"];
   moduleId: string;
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onDropAttempt: (key: string) => void;
 }) {
-  type Row = { area: string; habit: string; support: string };
-  const [rows, setRows] = useState<Row[]>([{ area: "", habit: "", support: "" }]);
+  // Rows carry their own id rather than being keyed by array position. Position
+  // shifts when a row is deleted, which used to re-point the answers: delete the
+  // first of two commitments and the second one's text was saved under the
+  // deleted one's heading, with the deleted one still saved too.
+  type Row = { id: number; area: string; habit: string; support: string };
+  const nextId = useRef(1);
+  const [rows, setRows] = useState<Row[]>([{ id: 0, area: "", habit: "", support: "" }]);
   const hintFor = (area: string) => screen.habitHints.find((h) => h.area === area)?.hint ?? "";
-  const update = (i: number, patch: Partial<Row>) =>
-    setRows((prev) => {
-      const next = prev.map((r, j) => (j === i ? { ...r, ...patch } : r));
-      const r = next[i];
-      if (r.area) {
-        onAttempt(`${screenIdx}:${i}`, {
-          screen_idx: screenIdx,
-          kind: "planbuilder",
-          prompt: r.area,
-          response: `${r.habit}${r.support ? ` — ${r.support}` : ""}`,
-          is_correct: null,
-        });
-      }
-      return next;
-    });
+  const keyFor = (id: number) => `${screenIdx}:${id}`;
+
+  // Built from the current rows rather than inside the state updater, so the
+  // recorded answers can't drift from what is on screen.
+  const update = (id: number, patch: Partial<Row>) => {
+    const next = rows.map((r) => (r.id === id ? { ...r, ...patch } : r));
+    setRows(next);
+    const r = next.find((x) => x.id === id);
+    if (!r) return;
+    // An area on its own is not a commitment yet — don't save an empty one.
+    if (r.area && (r.habit.trim() || r.support.trim())) {
+      onAttempt(keyFor(id), {
+        screen_idx: screenIdx,
+        kind: "planbuilder",
+        prompt: r.area,
+        response: `${r.habit.trim()}${r.support.trim() ? ` — ${r.support.trim()}` : ""}`,
+        is_correct: null,
+      });
+    } else {
+      onDropAttempt(keyFor(id));
+    }
+  };
+
+  const removeRow = (id: number) => {
+    onDropAttempt(keyFor(id));
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
   // One line per filled row, so the coach can pressure-test each habit.
   const planDraft = rows
     .filter((r) => r.area && r.habit.trim())
@@ -890,11 +965,11 @@ function ScreenPlanBuilder({
       <h2 className="screen-h">{screen.title}</h2>
       <p className="screen-prompt">{screen.intro}</p>
       <div className="builder">
-        {rows.map((r, i) => {
-          const taken = rows.filter((_, j) => j !== i).map((x) => x.area);
+        {rows.map((r) => {
+          const taken = rows.filter((x) => x.id !== r.id).map((x) => x.area);
           return (
-            <div className="plan-row" key={i}>
-              <select className="plan-select" value={r.area} onChange={(e) => update(i, { area: e.target.value })}>
+            <div className="plan-row" key={r.id}>
+              <select className="plan-select" value={r.area} onChange={(e) => update(r.id, { area: e.target.value })}>
                 <option value="">{p.choosePlaceholder}</option>
                 {screen.areaOptions
                   .filter((a) => !taken.includes(a))
@@ -912,19 +987,19 @@ function ScreenPlanBuilder({
                     placeholder={hintFor(r.area)}
                     maxLength={300}
                     value={r.habit}
-                    onChange={(e) => update(i, { habit: e.target.value })}
+                    onChange={(e) => update(r.id, { habit: e.target.value })}
                   />
                   <label className="builder-label">{screen.supportPrompt}</label>
                   <textarea
                     className="plan-support"
                     maxLength={300}
                     value={r.support}
-                    onChange={(e) => update(i, { support: e.target.value })}
+                    onChange={(e) => update(r.id, { support: e.target.value })}
                   />
                 </>
               )}
               {rows.length > 1 && (
-                <button className="link-btn" onClick={() => setRows((prev) => prev.filter((_, j) => j !== i))}>
+                <button className="link-btn" onClick={() => removeRow(r.id)}>
                   {p.remove}
                 </button>
               )}
@@ -935,7 +1010,7 @@ function ScreenPlanBuilder({
       {rows.length < screen.maxRows && (
         <button
           className="btn btn-soft"
-          onClick={() => setRows((prev) => [...prev, { area: "", habit: "", support: "" }])}
+          onClick={() => setRows((prev) => [...prev, { id: nextId.current++, area: "", habit: "", support: "" }])}
         >
           {p.addItem}
         </button>
@@ -1004,15 +1079,20 @@ function ScreenStakeholderMap({
   screenIdx,
   p,
   onAttempt,
+  onDropAttempt,
 }: {
   screen: Extract<Screen, { kind: "stakeholdermap" }>;
   screenIdx: number;
   p: Content["player"];
   onAttempt: (key: string, a: QuestionAttempt) => void;
+  onDropAttempt: (key: string) => void;
 }) {
-  type Row = { name: string; rel: string; power: string; interest: string };
-  const empty: Row = { name: "", rel: "", power: "", interest: "" };
-  const [rows, setRows] = useState<Row[]>([{ ...empty }]);
+  // Keyed by row id, not array position — same reason as the plan builder.
+  type Row = { id: number; name: string; rel: string; power: string; interest: string };
+  const blank = (id: number): Row => ({ id, name: "", rel: "", power: "", interest: "" });
+  const nextId = useRef(1);
+  const [rows, setRows] = useState<Row[]>([blank(0)]);
+  const keyFor = (id: number) => `${screenIdx}:${id}`;
   const levels = [p.levelLow, p.levelMedium, p.levelHigh];
   const classify = (r: Row) => {
     if (!r.power || !r.interest) return "";
@@ -1021,43 +1101,50 @@ function ScreenStakeholderMap({
     const c = screen.classifications;
     return ph && ih ? c.highHigh : ph ? c.highLow : ih ? c.lowHigh : c.lowLow;
   };
-  const update = (i: number, patch: Partial<Row>) =>
-    setRows((prev) => {
-      const next = prev.map((r, j) => (j === i ? { ...r, ...patch } : r));
-      const r = next[i];
-      if (r.name) {
-        const cls = classify(r);
-        onAttempt(`${screenIdx}:${i}`, {
-          screen_idx: screenIdx,
-          kind: "stakeholder",
-          prompt: r.name,
-          response:
-            `${r.rel}${r.power ? ` · ${p.power}: ${r.power}` : ""}` +
-            `${r.interest ? ` · ${p.interest}: ${r.interest}` : ""}${cls ? ` → ${cls}` : ""}`,
-          is_correct: null,
-        });
-      }
-      return next;
-    });
+  const update = (id: number, patch: Partial<Row>) => {
+    const next = rows.map((r) => (r.id === id ? { ...r, ...patch } : r));
+    setRows(next);
+    const r = next.find((x) => x.id === id);
+    if (!r) return;
+    if (r.name.trim()) {
+      const cls = classify(r);
+      onAttempt(keyFor(id), {
+        screen_idx: screenIdx,
+        kind: "stakeholder",
+        prompt: r.name.trim(),
+        response:
+          `${r.rel}${r.power ? ` · ${p.power}: ${r.power}` : ""}` +
+          `${r.interest ? ` · ${p.interest}: ${r.interest}` : ""}${cls ? ` → ${cls}` : ""}`,
+        is_correct: null,
+      });
+    } else {
+      onDropAttempt(keyFor(id));
+    }
+  };
+
+  const removeRow = (id: number) => {
+    onDropAttempt(keyFor(id));
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  };
   return (
     <div className="screen">
       <h2 className="screen-h">{screen.title}</h2>
       <p className="screen-prompt">{screen.prompt}</p>
       {screen.hint && <p className="builder-hint">{screen.hint}</p>}
       <div className="builder">
-        {rows.map((r, i) => {
+        {rows.map((r) => {
           const cls = classify(r);
           return (
-            <div className="stake-row" key={i}>
+            <div className="stake-row" key={r.id}>
               <input
                 className="stake-name"
                 placeholder={p.namePlaceholder}
                 maxLength={80}
                 value={r.name}
-                onChange={(e) => update(i, { name: e.target.value })}
+                onChange={(e) => update(r.id, { name: e.target.value })}
               />
               <div className="stake-tags">
-                <select value={r.rel} onChange={(e) => update(i, { rel: e.target.value })}>
+                <select value={r.rel} onChange={(e) => update(r.id, { rel: e.target.value })}>
                   <option value="">{p.relationship}</option>
                   {screen.relationshipOptions.map((o) => (
                     <option key={o} value={o}>
@@ -1065,7 +1152,7 @@ function ScreenStakeholderMap({
                     </option>
                   ))}
                 </select>
-                <select value={r.power} onChange={(e) => update(i, { power: e.target.value })}>
+                <select value={r.power} onChange={(e) => update(r.id, { power: e.target.value })}>
                   <option value="">{p.power}</option>
                   {levels.map((o) => (
                     <option key={o} value={o}>
@@ -1073,7 +1160,7 @@ function ScreenStakeholderMap({
                     </option>
                   ))}
                 </select>
-                <select value={r.interest} onChange={(e) => update(i, { interest: e.target.value })}>
+                <select value={r.interest} onChange={(e) => update(r.id, { interest: e.target.value })}>
                   <option value="">{p.interest}</option>
                   {levels.map((o) => (
                     <option key={o} value={o}>
@@ -1084,7 +1171,7 @@ function ScreenStakeholderMap({
               </div>
               {cls && <p className="stake-class">{cls}</p>}
               {rows.length > 1 && (
-                <button className="link-btn" onClick={() => setRows((prev) => prev.filter((_, j) => j !== i))}>
+                <button className="link-btn" onClick={() => removeRow(r.id)}>
                   {p.remove}
                 </button>
               )}
@@ -1093,7 +1180,7 @@ function ScreenStakeholderMap({
         })}
       </div>
       {rows.length < 5 && (
-        <button className="btn btn-soft" onClick={() => setRows((prev) => [...prev, { ...empty }])}>
+        <button className="btn btn-soft" onClick={() => setRows((prev) => [...prev, blank(nextId.current++)])}>
           {p.addItem}
         </button>
       )}

@@ -2,7 +2,7 @@
 
 `progress.ts` holds the `Progress` shape + **pure** derivations. `data.ts` is the
 Supabase data access layer (content + per-user state). `supabase/` has the
-browser/server clients + generated `database.types.ts`. `format.ts` has tiny
+browser client (auth only) + generated `database.types.ts`. `format.ts` has tiny
 string/class helpers (`fmt`, `levelKey`, `barClass`).
 
 ## progress.ts rules (pure only)

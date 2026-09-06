@@ -26,8 +26,8 @@ export default function Analytics({
 
   useEffect(() => {
     let active = true;
-    void loadUserAnalytics(userId).then((d) => active && setData(d));
-    void fetchGaSummary("user").then((g) => active && setGa(g));
+    void loadUserAnalytics().then((d) => active && setData(d));
+    void fetchGaSummary().then((g) => active && setGa(g));
     return () => {
       active = false;
     };
