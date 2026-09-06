@@ -66,9 +66,11 @@ async function apiSend(method: "POST" | "PUT" | "PATCH" | "DELETE", path: string
 }
 
 // ---------- content ----------
-export async function fetchModules(): Promise<ManagerModule[]> {
+/** Null means the request failed — as opposed to there being no modules. */
+export async function fetchModules(): Promise<ManagerModule[] | null> {
   const data = await apiGet<Array<Omit<ManagerModule, "screens"> & { screens: unknown }>>("/modules");
-  return (data ?? []).map((r) => ({
+  if (!data) return null;
+  return data.map((r) => ({
     id: r.id,
     skill: r.skill as SkillId,
     cluster: r.cluster,
@@ -180,6 +182,38 @@ export async function saveModuleCompletion(
   await apiSend("POST", `/me/modules/${encodeURIComponent(moduleId)}/complete`, data);
 }
 
+/**
+ * A lesson the user is part-way through.
+ *
+ * Answers carry the player's own key alongside them. The player holds answers
+ * in a map keyed by screen and row, and that key cannot be reconstructed from
+ * the answer itself — restore it wrongly and editing a plan row would append a
+ * duplicate rather than replace it.
+ */
+export type DraftAttempt = QuestionAttempt & { key: string };
+
+export type LessonDraft = {
+  screenIdx: number;
+  reflection: string;
+  attempts: DraftAttempt[];
+};
+
+/**
+ * Where they got to in a module, or null if there is nothing to resume: they
+ * have not started it, or they have already finished it.
+ */
+export async function fetchLessonDraft(moduleId: string): Promise<LessonDraft | null> {
+  const r = await apiGet<{ resumable: boolean } & Partial<LessonDraft>>(
+    `/me/modules/${encodeURIComponent(moduleId)}/progress`
+  );
+  if (!r?.resumable) return null;
+  return { screenIdx: r.screenIdx ?? 0, reflection: r.reflection ?? "", attempts: r.attempts ?? [] };
+}
+
+export async function saveLessonDraft(moduleId: string, draft: LessonDraft): Promise<void> {
+  await apiSend("PUT", `/me/modules/${encodeURIComponent(moduleId)}/progress`, draft);
+}
+
 export async function deleteAccount(): Promise<boolean> {
   return apiSend("DELETE", "/me/account");
 }
@@ -219,18 +253,9 @@ export type UserAnalytics = {
   timeByModule: ModuleTime[];
 };
 
-const EMPTY_ANALYTICS: UserAnalytics = {
-  totalTimeMs: 0,
-  activeDays: 0,
-  completed: 0,
-  started: 0,
-  skips: 0,
-  daily: [],
-  timeByModule: [],
-};
-
-export async function loadUserAnalytics(): Promise<UserAnalytics> {
-  return (await apiGet<UserAnalytics>("/me/analytics")) ?? EMPTY_ANALYTICS;
+/** Null on failure — zeros would read as "you have never used this". */
+export async function loadUserAnalytics(): Promise<UserAnalytics | null> {
+  return apiGet<UserAnalytics>("/me/analytics");
 }
 
 export type AdminUserSummary = {

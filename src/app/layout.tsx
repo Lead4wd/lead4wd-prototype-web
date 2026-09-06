@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import { AppProvider } from "./providers";
 
 // ── Display / headings ────────────────────────────────────────────────────
 // Variable font; load the same weight range as the mockup's Google Fonts URL:
@@ -75,7 +76,9 @@ export default function RootLayout({
       className={`${display.variable} ${body.variable} ${mono.variable} ${devanagari.variable} ${telugu.variable}`}
     >
       <body>
-        {children}
+        {/* Session, profile, content and progress live here rather than in a
+            page, so a navigation between routes does not refetch them. */}
+        <AppProvider>{children}</AppProvider>
         <GoogleAnalytics />
       </body>
     </html>

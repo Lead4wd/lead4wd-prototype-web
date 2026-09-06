@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import type { Content } from "@/data/content";
 import type { ManagerModule, Screen } from "@/data/modules";
 import type { View } from "@/lib/progress";
-import type { EngagementKind, QuestionAttempt } from "@/lib/data";
+import {
+  fetchLessonDraft,
+  saveLessonDraft,
+  type EngagementKind,
+  type QuestionAttempt,
+} from "@/lib/data";
 import { gaEvent } from "@/lib/ga";
 import { fmt } from "@/lib/format";
 import { ChevronLeft, Clock, Check } from "@/components/icons";
@@ -67,6 +72,9 @@ export default function ModulePlayer({
   const [quiz, setQuiz] = useState<{ correct: number; total: number } | null>(null);
   const [attempts, setAttempts] = useState<Record<string, QuestionAttempt>>({});
   const [recap, setRecap] = useState<Recap | null>(null);
+  // Until we know whether there is something to resume, rendering screen one
+  // would flash the start of the lesson at someone returning to screen seven.
+  const [restoring, setRestoring] = useState(true);
 
   const screen = screens[idx];
   const isLast = idx === screens.length - 1;
@@ -95,6 +103,70 @@ export default function ModulePlayer({
       delete next[key];
       return next;
     });
+
+  // ---- resume ---------------------------------------------------------------
+  // A module used to exist in the database only once it was finished, so
+  // closing the tab on screen 7 of 12 threw away the position, every answer and
+  // the half-written reflection. On a phone, being interrupted is the normal
+  // case.
+  //
+  // The draft is mirrored into a ref because the two things that trigger a save
+  // — landing on a new screen, and leaving the lesson — both read it from
+  // outside the render that produced it.
+  const draftRef = useRef({ idx: 0, reflection: "", attempts: {} as Record<string, QuestionAttempt> });
+  const restoringRef = useRef(true);
+  const completedRef = useRef(false);
+  useEffect(() => {
+    draftRef.current = { idx, reflection, attempts };
+  });
+
+  const saveDraft = () => {
+    // Nothing to save before the restore lands (it would write over the draft
+    // with an empty one), and nothing to save after finishing (the completion
+    // clears it, and a late write would race that).
+    if (restoringRef.current || completedRef.current) return;
+    const d = draftRef.current;
+    void saveLessonDraft(module.id, {
+      screenIdx: d.idx,
+      reflection: d.reflection,
+      attempts: Object.entries(d.attempts).map(([key, a]) => ({ key, ...a })),
+    });
+  };
+
+  useEffect(() => {
+    let active = true;
+    void fetchLessonDraft(module.id).then((draft) => {
+      if (!active) return;
+      if (draft) {
+        // Don't trust a stored index past the end: a module can be re-authored
+        // shorter between the save and the return.
+        setIdx(Math.min(Math.max(draft.screenIdx, 0), screens.length - 1));
+        setReflection(draft.reflection);
+        // `key` is the player's own map key and must not travel on to the
+        // completion payload, whose schema rejects unknown fields.
+        setAttempts(Object.fromEntries(draft.attempts.map(({ key, ...a }) => [key, a])));
+      }
+      restoringRef.current = false;
+      setRestoring(false);
+    });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [module.id]);
+
+  // Save on arrival at a new screen — after the render that recorded the answer
+  // which moved us, so the saved draft matches what is on screen.
+  useEffect(() => {
+    if (!restoring) saveDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx, restoring]);
+
+  // ...and on the way out, which is the case this whole thing exists for.
+  useEffect(() => {
+    return () => saveDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** Move screens without carrying a stale recap onto the new one. */
   const goTo = (next: number) => {
@@ -165,9 +237,14 @@ export default function ModulePlayer({
     setQuiz(null);
     setReflection("");
     setAttempts({});
+    draftRef.current = { idx: 0, reflection: "", attempts: {} };
+    saveDraft();
   };
 
   const complete = () => {
+    // Stops the unmount save from writing a "started" draft over the completion
+    // we are about to record.
+    completedRef.current = true;
     const finalPct = hasQuiz ? scorePct : 100;
     onTrack?.({ kind: "module_complete", moduleId: module.id, meta: { score_pct: finalPct } });
     gaEvent("module_completed", { module_id: module.id, score_pct: finalPct });
@@ -179,6 +256,8 @@ export default function ModulePlayer({
       attempts: Object.values(attempts),
     });
   };
+
+  if (restoring) return null;
 
   return (
     <section className="view on">

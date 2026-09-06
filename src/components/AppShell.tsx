@@ -1,24 +1,17 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
-import { SKILL_ORDER, type Content, type LanguageCode, type SkillId } from "@/data/content";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { SKILL_ORDER, type Content, type LanguageCode } from "@/data/content";
 import type { ManagerModule } from "@/data/modules";
-import { currentModuleId, type Progress, type View } from "@/lib/progress";
+import type { View } from "@/lib/progress";
+import { VIEW_PATH, viewFromPathname } from "@/lib/routes";
 import { fmt } from "@/lib/format";
 import { Chevron, Check, Search, Menu } from "@/components/icons";
-import Dashboard from "@/components/views/Dashboard";
-import Journey from "@/components/views/Journey";
-import ModulePlayer, { type ModuleResult, type TrackEvent } from "@/components/ModulePlayer";
-import Assessment from "@/components/views/Assessment";
-import SkillsProfile from "@/components/views/SkillsProfile";
-import TeamPulse from "@/components/views/TeamPulse";
-import Analytics from "@/components/views/Analytics";
-import AiCoach from "@/components/views/AiCoach";
-import RolePlay from "@/components/views/RolePlay";
-import AdminPanel from "@/components/views/AdminPanel";
 import AccountSettings from "@/components/AccountSettings";
 import CookieConsent from "@/components/CookieConsent";
-import type { AssessmentQuestion, ProfileRow } from "@/lib/data";
+import { useApp } from "@/app/providers";
 
 type NavSection = {
   group: "coaching" | "insight";
@@ -139,71 +132,58 @@ const ADMIN_ICON = (
 );
 
 // Build the searchable index (pages + skills + every module) for a language.
-function searchIndex(c: Content, modules: ManagerModule[]): { label: string; view: View; tag: string }[] {
-  const pages: { label: string; view: View; tag: string }[] = [
-    { label: c.nav.home, view: "dashboard", tag: c.nav.coaching },
-    { label: c.nav.journey, view: "journey", tag: c.nav.coaching },
-    { label: c.nav.lesson, view: "lesson", tag: c.nav.coaching },
-    { label: c.nav.results, view: "results", tag: c.nav.insight },
-    { label: c.nav.team, view: "team", tag: c.nav.insight },
-    { label: c.nav.assessment, view: "assessment", tag: c.nav.insight },
-    { label: c.nav.analytics, view: "analytics", tag: c.nav.insight },
-    { label: c.nav.coach, view: "coach", tag: c.nav.insight },
-    { label: c.nav.practice, view: "practice", tag: c.nav.insight },
+function searchIndex(c: Content, modules: ManagerModule[]): { label: string; href: string; tag: string }[] {
+  const pages = [
+    { label: c.nav.home, href: VIEW_PATH.dashboard, tag: c.nav.coaching },
+    { label: c.nav.journey, href: VIEW_PATH.journey, tag: c.nav.coaching },
+    { label: c.nav.lesson, href: VIEW_PATH.lesson, tag: c.nav.coaching },
+    { label: c.nav.results, href: VIEW_PATH.results, tag: c.nav.insight },
+    { label: c.nav.team, href: VIEW_PATH.team, tag: c.nav.insight },
+    { label: c.nav.assessment, href: VIEW_PATH.assessment, tag: c.nav.insight },
+    { label: c.nav.analytics, href: VIEW_PATH.analytics, tag: c.nav.insight },
+    { label: c.nav.coach, href: VIEW_PATH.coach, tag: c.nav.insight },
+    { label: c.nav.practice, href: VIEW_PATH.practice, tag: c.nav.insight },
   ];
   const skills = SKILL_ORDER.map((id) => ({
     label: c.skillNames[id],
-    view: "results" as View,
+    href: VIEW_PATH.results,
     tag: c.nav.results,
   }));
-  const mods = modules.map((m) => ({ label: m.title, view: "journey" as View, tag: m.cluster }));
+  // Modules are searchable by name and now open directly, rather than dropping
+  // the user on the journey to find the one they just typed.
+  const mods = modules.map((m) => ({ label: m.title, href: `/lesson/${m.id}`, tag: m.cluster }));
   return [...pages, ...skills, ...mods];
 }
 
-export default function AppShell({
-  c,
-  language,
-  languages,
-  onChangeLanguage,
-  progress,
-  profile,
-  modules,
-  lockedClusters,
-  assessmentQuestions,
-  onCompleteModule,
-  onSubmitAssessment,
-  onProfileUpdated,
-  onTrack,
-  initialAccountOpen = false,
-}: {
-  c: Content;
-  language: LanguageCode;
-  languages: { code: LanguageCode; label: string }[];
-  onChangeLanguage: (l: LanguageCode) => void;
-  progress: Progress;
-  profile: ProfileRow;
-  modules: ManagerModule[];
-  lockedClusters: string[];
-  assessmentQuestions: AssessmentQuestion[];
-  onCompleteModule: (moduleId: string, result: ModuleResult) => void;
-  onSubmitAssessment: (answers: (number | null)[], scores: Record<SkillId, number>) => void;
-  onProfileUpdated: (patch: Partial<ProfileRow>) => void;
-  onTrack?: (ev: TrackEvent) => void;
-  initialAccountOpen?: boolean;
-}) {
-  const [view, setView] = useState<View>("dashboard");
+/**
+ * The signed-in chrome: sidebar, topbar, account modal. The routed view renders
+ * as `children`.
+ */
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  const { c, language, languages, changeLanguage, progress, profile, modules, recoveryMode, profileUpdated } = useApp();
+  const pathname = usePathname();
+  const view = viewFromPathname(pathname);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(initialAccountOpen);
+  const [accountOpen, setAccountOpen] = useState(recoveryMode);
 
   // Password-recovery links land mid-session — surface the settings modal so
   // the user can set a new password.
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (initialAccountOpen) setAccountOpen(true);
-  }, [initialAccountOpen]);
+    if (recoveryMode) setAccountOpen(true);
+  }, [recoveryMode]);
+
+  // Close the mobile sidebar and any popover once a navigation lands.
+  useEffect(() => {
+    setSidebarOpen(false);
+    setLangOpen(false);
+    setSearchOpen(false);
+    setSearch("");
+  }, [pathname]);
 
   // Close popovers on any outside click.
   useEffect(() => {
@@ -216,17 +196,9 @@ export default function AppShell({
     return () => window.removeEventListener("click", close);
   }, [langOpen, searchOpen]);
 
-  const go = (v: View) => {
-    setView(v);
-    setSidebarOpen(false);
-    setLangOpen(false);
-    setSearchOpen(false);
-    setSearch("");
-  };
+  if (!profile) return null;
 
   const displayName = profile.display_name?.trim() || c.profile.name;
-  const moduleIds = modules.map((m) => m.id);
-  const cur = modules.find((m) => m.id === currentModuleId(progress.completedModules, moduleIds)) ?? null;
 
   const query = search.trim().toLowerCase();
   const results = query
@@ -250,14 +222,15 @@ export default function AppShell({
             <Fragment key={section.group}>
               <div className="navlbl">{c.nav[section.group]}</div>
               {section.items.map((item) => (
-                <button
+                <Link
                   key={item.view}
+                  href={VIEW_PATH[item.view]}
                   className={`navlink ${view === item.view ? "on" : ""}`}
-                  onClick={() => go(item.view)}
+                  aria-current={view === item.view ? "page" : undefined}
                 >
                   {item.icon}
                   {c.nav[item.key]}
-                </button>
+                </Link>
               ))}
             </Fragment>
           ))}
@@ -265,13 +238,14 @@ export default function AppShell({
           {profile.is_admin && (
             <Fragment>
               <div className="navlbl">{c.nav.admin}</div>
-              <button
+              <Link
+                href={VIEW_PATH.admin}
                 className={`navlink ${view === "admin" ? "on" : ""}`}
-                onClick={() => go("admin")}
+                aria-current={view === "admin" ? "page" : undefined}
               >
                 {ADMIN_ICON}
                 {c.nav.adminPanel}
-              </button>
+              </Link>
             </Fragment>
           )}
 
@@ -314,10 +288,10 @@ export default function AppShell({
                   <div className="searchmenu">
                     {results.length > 0 ? (
                       results.map((r, i) => (
-                        <button key={i} onClick={() => go(r.view)}>
+                        <Link key={i} href={r.href}>
                           <span>{r.label}</span>
                           <span className="stype">{r.tag}</span>
-                        </button>
+                        </Link>
                       ))
                     ) : (
                       <div className="empty">—</div>
@@ -341,7 +315,7 @@ export default function AppShell({
                         key={l.code}
                         className={language === l.code ? "on" : ""}
                         onClick={() => {
-                          onChangeLanguage(l.code);
+                          changeLanguage(l.code as LanguageCode);
                           setLangOpen(false);
                         }}
                       >
@@ -355,59 +329,7 @@ export default function AppShell({
             </div>
           </header>
 
-          <div className="content">
-            {view === "dashboard" && (
-              <Dashboard c={c} progress={progress} go={go} modules={modules} userName={displayName} />
-            )}
-            {view === "journey" && (
-              <Journey c={c} progress={progress} go={go} modules={modules} lockedClusters={lockedClusters} />
-            )}
-            {view === "lesson" &&
-              (cur ? (
-                <ModulePlayer
-                  c={c}
-                  module={cur}
-                  go={go}
-                  onComplete={(result) => {
-                    onCompleteModule(cur.id, result);
-                    go("dashboard");
-                  }}
-                  onTrack={onTrack}
-                />
-              ) : (
-                <section className="view on">
-                  <div className="lesson">
-                    <span className="eyebrow">{c.nav.lesson}</span>
-                    <h1 style={{ marginTop: 10 }}>{c.dashboard.caughtUpTitle}</h1>
-                    <p className="sub" style={{ marginTop: 10 }}>
-                      {c.dashboard.caughtUpDesc}
-                    </p>
-                    <button className="btn btn-pri" style={{ marginTop: 22 }} onClick={() => go("journey")}>
-                      {c.nav.journey}
-                    </button>
-                  </div>
-                </section>
-              ))}
-            {view === "results" && (
-              <SkillsProfile c={c} scores={progress.scores} go={go} onRetake={() => go("assessment")} />
-            )}
-            {view === "team" && <TeamPulse c={c} />}
-            {view === "analytics" && <Analytics c={c} userId={profile.id} modules={modules} />}
-            {view === "coach" && <AiCoach c={c} />}
-            {view === "practice" && <RolePlay c={c} />}
-            {view === "admin" && profile.is_admin && <AdminPanel c={c} modules={modules} />}
-            {view === "assessment" && (
-              <Assessment
-                c={c}
-                questions={assessmentQuestions}
-                onExit={() => go("dashboard")}
-                onComplete={(answers, scores) => {
-                  onSubmitAssessment(answers, scores);
-                  go("results");
-                }}
-              />
-            )}
-          </div>
+          <div className="content">{children}</div>
         </div>
       </div>
 
@@ -417,10 +339,7 @@ export default function AppShell({
           profile={profile}
           languages={languages}
           onClose={() => setAccountOpen(false)}
-          onUpdated={(patch) => {
-            onProfileUpdated(patch);
-            if (patch.language && patch.language !== language) onChangeLanguage(patch.language as LanguageCode);
-          }}
+          onUpdated={profileUpdated}
         />
       )}
 

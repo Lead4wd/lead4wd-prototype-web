@@ -5,12 +5,30 @@ design-system CSS. The actual screens are components in `src/components/` (see i
 CLAUDE.md); stateful logic lives in `src/lib/progress.ts`.
 
 ## Files
-- `page.tsx` — thin `"use client"` root: the `ONBOARDING → AUTH → APP` state
-  machine; owns persisted `language` + `progress`; renders the entry screens or
-  `<AppShell>`. Keep view/UI logic out of here.
-- `layout.tsx` — loads fonts via `next/font` and applies their variable classes to
-  `<html>` (see _Fonts gotcha_). Sets `data-theme="evergreen"` + metadata.
+- `layout.tsx` — root layout: loads fonts via `next/font` and applies their
+  variable classes to `<html>` (see _Fonts gotcha_), sets `data-theme="evergreen"`
+  + metadata, and mounts `<AppProvider>`.
+- `providers.tsx` — **all app-wide state**: session, profile, progress, the
+  fetched curriculum, language. Lives in the root layout so it survives
+  navigation between routes. Views read it with `useApp()`.
+- `page.tsx` — the entry gate at `/`: the `intro → auth → firstrun` sequence.
+  Once signed in and onboarded it redirects to `/dashboard`.
+- `(app)/layout.tsx` — the signed-in shell. Guards the routes (signed-out
+  visitors are sent back to `/`) and wraps them in `<AppShell>`.
+- `(app)/<view>/page.tsx` — one thin file per view: read from `useApp()`, render
+  the component from `src/components/views/`. Keep logic out of these.
 - `globals.css` — the design system (see _Design fidelity_).
+
+## Routing
+Each view is a real route (`/dashboard`, `/journey`, `/lesson`, `/practice`, …),
+mapped in `src/lib/routes.ts` — the single place a `View` and a URL are tied
+together. Add a view there, not by hand at the call site. Lessons are linkable:
+`/lesson` follows the journey, `/lesson/[moduleId]` opens one by name.
+
+Views still take a `go(view)` callback; `useGo()` in `src/lib/navigation.ts`
+implements it with the router, so the views themselves know nothing about it.
+Prefer `<Link>` where the thing genuinely is a link — it gives middle-click,
+open-in-new-tab and keyboard behaviour for free.
 
 ## Design fidelity (important)
 `globals.css` is the Claude-design mockup's `app-styles.css`, ported **verbatim**.

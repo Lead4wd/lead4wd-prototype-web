@@ -30,5 +30,13 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "_comment_exclude": [
+    "vitest.config.ts is build tooling, not app code. It has to stay out of the",
+    "Next typecheck: Next 16 bundles a rolldown-based Vite while Vitest bundles",
+    "its own, so the two copies' Plugin types are structurally incompatible and",
+    "`plugins: [react()]` fails to typecheck even though it runs fine.",
+    "Vitest reads this file directly and does not typecheck it. The tests",
+    "themselves stay included, so `npm run build` still checks them."
+  ],
+  "exclude": ["node_modules", "vitest.config.ts"]
 }

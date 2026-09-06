@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Content } from "@/data/content";
 import type { ManagerModule } from "@/data/modules";
 import {
@@ -6,21 +7,19 @@ import {
   planPct,
   moduleState,
   type Progress,
-  type View,
 } from "@/lib/progress";
+import { lessonPath } from "@/lib/routes";
 import { fmt } from "@/lib/format";
 import { Check } from "@/components/icons";
 
 export default function Journey({
   c,
   progress,
-  go,
   modules,
   lockedClusters,
 }: {
   c: Content;
   progress: Progress;
-  go: (v: View) => void;
   modules: ManagerModule[];
   lockedClusters: string[];
 }) {
@@ -85,13 +84,20 @@ export default function Journey({
                     ))}
                   </div>
                   {st === "now" && (
-                    <button
+                    <Link
                       className="btn btn-pri"
-                      style={{ width: "100%", justifyContent: "center", marginTop: 14, padding: 10 }}
-                      onClick={() => go("lesson")}
+                      style={{
+                        display: "flex",
+                        width: "100%",
+                        justifyContent: "center",
+                        marginTop: 14,
+                        padding: 10,
+                        textDecoration: "none",
+                      }}
+                      href={lessonPath(m.id)}
                     >
                       {j.resume}
-                    </button>
+                    </Link>
                   )}
                 </div>
               );

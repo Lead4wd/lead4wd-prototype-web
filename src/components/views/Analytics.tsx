@@ -6,32 +6,31 @@ import type { ManagerModule } from "@/data/modules";
 import { fmt } from "@/lib/format";
 import { loadUserAnalytics, fetchGaSummary, type UserAnalytics, type GaSummary } from "@/lib/data";
 import GaSection, { DayBars } from "@/components/views/GaSection";
+import LoadError from "@/components/LoadError";
 
 const mins = (ms: number) => Math.max(0, Math.round(ms / 60000));
 
 // User-facing analytics: the signed-in user's own learning stats (from Supabase)
 // plus an anonymous, product-wide Google Analytics aggregate section.
-export default function Analytics({
-  c,
-  userId,
-  modules,
-}: {
-  c: Content;
-  userId: string;
-  modules: ManagerModule[];
-}) {
+export default function Analytics({ c, modules }: { c: Content; modules: ManagerModule[] }) {
   const a = c.analytics;
   const [data, setData] = useState<UserAnalytics | null>(null);
+  const [failed, setFailed] = useState(false);
   const [ga, setGa] = useState<GaSummary | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     let active = true;
-    void loadUserAnalytics().then((d) => active && setData(d));
+    void loadUserAnalytics().then((d) => {
+      if (!active) return;
+      setData(d);
+      setFailed(d === null);
+    });
     void fetchGaSummary().then((g) => active && setGa(g));
     return () => {
       active = false;
     };
-  }, [userId]);
+  }, [attempt]);
 
   const moduleTitle = (id: string) => {
     const i = modules.findIndex((m) => m.id === id);
@@ -67,7 +66,11 @@ export default function Analytics({
           </div>
         </div>
 
-        {!hasOwnData ? (
+        {failed ? (
+          // "Nothing here yet" would be a lie if we simply could not reach the
+          // server — and a discouraging one, on a page about their own effort.
+          <LoadError c={c} onRetry={() => setAttempt((n) => n + 1)} />
+        ) : !hasOwnData ? (
           <div className="card" style={{ marginTop: 18 }}>
             <p className="ga-note">{a.noData}</p>
           </div>

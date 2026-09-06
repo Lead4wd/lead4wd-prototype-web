@@ -92,6 +92,9 @@ export type Content = {
     oneAction: string;
     back: string;
     startLesson: string;
+    // Shown when a request failed, as distinct from there being nothing yet.
+    loadFailed: string;
+    retry: string;
   };
   onboarding: {
     eyebrow: string;
@@ -426,6 +429,8 @@ const en: Content = {
     oneAction: "1 action",
     back: "Back",
     startLesson: "Start lesson",
+    loadFailed: "We couldn't load this. Your work is safe — check your connection and try again.",
+    retry: "Try again",
   },
   onboarding: {
     eyebrow: "Welcome to Lead4wd",
@@ -835,6 +840,8 @@ const hi: Content = {
     oneAction: "1 कार्य",
     back: "वापस",
     startLesson: "पाठ शुरू करें",
+    loadFailed: "यह लोड नहीं हो सका। आपका काम सुरक्षित है — कनेक्शन जाँचें और फिर कोशिश करें।",
+    retry: "फिर कोशिश करें",
   },
   onboarding: {
     eyebrow: "Lead4wd में आपका स्वागत है",
@@ -1239,6 +1246,8 @@ const te: Content = {
     oneAction: "1 చర్య",
     back: "వెనుకకు",
     startLesson: "పాఠం ప్రారంభించండి",
+    loadFailed: "దీన్ని లోడ్ చేయలేకపోయాం. మీ పని సురక్షితం — కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.",
+    retry: "మళ్లీ ప్రయత్నించండి",
   },
   onboarding: {
     eyebrow: "Lead4wd కు స్వాగతం",

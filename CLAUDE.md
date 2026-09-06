@@ -24,6 +24,7 @@ it is intentionally **not** auto-loaded.
 - Dev: `npm run dev`
 - Build: `npm run build` ← also runs typecheck + lint; use it to verify changes
 - Lint: `npm run lint`
+- Test: `npm test` (Vitest; `npm run test:watch` to iterate)
 
 > **Environment note (this machine):** the repo lives in the WSL **ubuntu** distro
 > and `node_modules` are Linux binaries, so the toolchain must run inside it — it
@@ -46,9 +47,10 @@ Run `npm run build` after changes. For any UI change, also run the app and compa
 against the design mockup — see `src/app/CLAUDE.md`.
 
 ## Where things live
-- `src/app/` — route entry, root layout (fonts), global design-system CSS → `src/app/CLAUDE.md`
+- `src/app/` — routes, root layout (fonts), app-wide state, global CSS → `src/app/CLAUDE.md`
 - `src/components/` — the screens (entry, shell, six views) → `src/components/CLAUDE.md`
-- `src/lib/` — `progress.ts` (functional state) + `format.ts` helpers → `src/lib/CLAUDE.md`
+- `src/lib/` — `progress.ts` (functional state), `routes.ts` (view ↔ URL) +
+  `format.ts` helpers → `src/lib/CLAUDE.md`
 - `src/data/` — content + 3-language i18n + skill model → `src/data/CLAUDE.md`
 - `transfer.md` — full architecture & feature walkthrough (manual reference)
 - `node_modules/next/dist/docs/` — authoritative Next.js 16 docs (read before
